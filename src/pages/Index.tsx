@@ -14,7 +14,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   useSeoMeta({
-    title: 'Nostr Bookmarks - Save and Share Your Favorite Links',
+    title: 'Pinstr - Save and Share Your Favorite Links',
     description: 'A decentralized bookmark manager built on Nostr protocol (NIP-B0). Save, organize, and share your favorite web pages.',
   });
 
@@ -33,9 +33,9 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Nostr Bookmarks
+                  Pinstr
                 </h1>
-                <p className="text-xs text-muted-foreground">Decentralized bookmark manager</p>
+                <p className="text-xs text-muted-foreground">Bookmarks on Nostr</p>
               </div>
             </div>
 

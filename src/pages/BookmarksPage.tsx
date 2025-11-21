@@ -74,7 +74,7 @@ export default function BookmarksPage() {
                   <BookmarkIcon className="h-12 w-12 text-violet-600 dark:text-violet-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Welcome to Nostr Bookmarks</h2>
+                  <h2 className="text-2xl font-bold mb-2">Welcome to Pinstr</h2>
                   <p className="text-muted-foreground">
                     Sign in with your Nostr browser extension to save and manage your bookmarks across the decentralized web.
                   </p>
