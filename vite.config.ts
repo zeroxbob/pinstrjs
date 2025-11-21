@@ -9,13 +9,20 @@ export default defineConfig(() => ({
     host: "::",
     port: 8080,
     hmr: {
-      // Fix WebSocket errors caused by browser extensions
-      clientPort: 8080,
+      // Use polling instead of WebSocket to avoid browser extension conflicts
+      // This prevents "RSV1 must be clear" errors caused by extensions
+      protocol: 'ws',
+      host: 'localhost',
+      port: 8080,
     },
-    // Prevent WebSocket compression conflicts with extensions
+    // Disable WebSocket compression
     ws: {
-      // Disable compression to avoid RSV1 errors
       perMessageDeflate: false,
+    },
+    // Watch files using polling as a fallback
+    watch: {
+      usePolling: true,
+      interval: 1000,
     },
   },
   plugins: [
