@@ -8,6 +8,15 @@ export default defineConfig(() => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      // Fix WebSocket errors caused by browser extensions
+      clientPort: 8080,
+    },
+    // Prevent WebSocket compression conflicts with extensions
+    ws: {
+      // Disable compression to avoid RSV1 errors
+      perMessageDeflate: false,
+    },
   },
   plugins: [
     react(),
