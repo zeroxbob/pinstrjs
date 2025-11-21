@@ -52,10 +52,10 @@ export default function BookmarksPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-                  My Bookmarks
+                  Pinstr
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  Decentralized bookmarking on Nostr
+                  Bookmarks on Nostr
                 </p>
               </div>
             </div>
