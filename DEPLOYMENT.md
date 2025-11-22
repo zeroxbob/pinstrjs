@@ -150,11 +150,38 @@ This copies `index.html` to `404.html`, so all routes redirect to the React app.
 Loading module from "https://username.github.io/src/main.tsx" was blocked because of a disallowed MIME type ("text/html").
 ```
 
-**Cause:** You're accessing the wrong URL - GitHub Pages is trying to load the source file instead of the built bundle.
+**Cause:** Your browser cached an old deployment OR GitHub Pages CDN hasn't updated yet.
 
-**Solution:** Make sure you're accessing the FULL URL with the repository name:
-- ❌ Wrong: `https://zeroxbob.github.io/`
-- ✅ Correct: `https://zeroxbob.github.io/pinstrjs/`
+**Solution (try in this order):**
+
+1. **Hard refresh your browser** (this fixes it 90% of the time):
+   - **Windows/Linux:** `Ctrl + Shift + R` or `Ctrl + F5`
+   - **macOS:** `Cmd + Shift + R`
+
+2. **Try incognito/private window** (bypasses cache completely):
+   - Chrome: `Ctrl/Cmd + Shift + N`
+   - Firefox: `Ctrl/Cmd + Shift + P`
+   - Then visit: `https://zeroxbob.github.io/pinstrjs/`
+
+3. **Clear browser cache**:
+   - **Chrome:** Settings → Privacy and security → Clear browsing data → Select "Cached images and files" → Clear data
+   - **Firefox:** Settings → Privacy & Security → Cookies and Site Data → Clear Data → Select "Cached Web Content" → Clear
+
+4. **Wait 5-10 minutes for GitHub Pages CDN** to fully update (sometimes it takes time)
+
+5. **Verify deployment succeeded**:
+   - Go to your repository → **Actions** tab
+   - Check that the latest workflow has a green checkmark ✓
+   - If it failed (red X), click on it to see error logs
+
+6. **Manually trigger a fresh deployment**:
+   - Actions tab → "Deploy to GitHub Pages" → "Run workflow" → "Run workflow"
+   - Wait for it to complete
+   - Then hard refresh your browser again
+
+7. **Verify the correct URL** (as a last resort):
+   - ❌ Wrong: `https://zeroxbob.github.io/`
+   - ✅ Correct: `https://zeroxbob.github.io/pinstrjs/`
 
 ### **Blank page after deployment**
 
