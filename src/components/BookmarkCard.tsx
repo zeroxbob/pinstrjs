@@ -106,17 +106,8 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleViewJSON}
-              title="View JSON"
-            >
-              <Code className="h-4 w-4 text-muted-foreground" />
-            </Button>
-            {isOwnBookmark && (
+          {isOwnBookmark && (
+            <div className="flex items-center gap-1 flex-shrink-0">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -142,8 +133,8 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div>
@@ -178,11 +169,20 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
           </div>
         )}
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Calendar className="h-3 w-3" />
             <span>{formatDate(bookmark.publishedAt || bookmark.createdAt)}</span>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleViewJSON}
+            title="View JSON"
+          >
+            <Code className="h-4 w-4 text-muted-foreground" />
+          </Button>
         </div>
       </CardContent>
     </Card>
