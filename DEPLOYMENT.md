@@ -58,13 +58,21 @@ git push origin main
 
 ## 🌐 Accessing Your Deployed Site
 
+**IMPORTANT:** Make sure you access the correct URL!
+
 Your Pinstr app will be available at:
 
 ```
 https://YOUR_USERNAME.github.io/pinstrjs/
 ```
 
+⚠️ **Note the `/pinstrjs/` at the end!** Without it, you'll get a blank page or MIME type errors.
+
 Replace `YOUR_USERNAME` with your GitHub username.
+
+### **Common Mistake:**
+- ❌ Wrong: `https://zeroxbob.github.io/` (missing repo name)
+- ✅ Correct: `https://zeroxbob.github.io/pinstrjs/`
 
 ---
 
@@ -135,17 +143,32 @@ cp dist/index.html dist/404.html
 
 This copies `index.html` to `404.html`, so all routes redirect to the React app.
 
+### **MIME Type Error: "Disallowed MIME type (text/html)"**
+
+**Error in console:**
+```
+Loading module from "https://username.github.io/src/main.tsx" was blocked because of a disallowed MIME type ("text/html").
+```
+
+**Cause:** You're accessing the wrong URL - GitHub Pages is trying to load the source file instead of the built bundle.
+
+**Solution:** Make sure you're accessing the FULL URL with the repository name:
+- ❌ Wrong: `https://zeroxbob.github.io/`
+- ✅ Correct: `https://zeroxbob.github.io/pinstrjs/`
+
 ### **Blank page after deployment**
 
 **Possible causes:**
-1. **Incorrect base path** - Check `vite.config.ts`
-2. **Build errors** - Check the Actions workflow logs
-3. **Missing dependencies** - Ensure `package.json` is complete
+1. **Wrong URL** - Make sure you include `/pinstrjs/` in the URL
+2. **Incorrect base path** - Check `vite.config.ts` has `base: '/pinstrjs/'`
+3. **Build errors** - Check the Actions workflow logs
+4. **Missing dependencies** - Ensure `package.json` is complete
 
 **Debug steps:**
 1. Open browser console (F12) and check for errors
 2. Look for 404 errors on JS/CSS files
 3. Verify the correct base path in `vite.config.ts`
+4. Verify you're using the correct URL with `/pinstrjs/` at the end
 
 ---
 

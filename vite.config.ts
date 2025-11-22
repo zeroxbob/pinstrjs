@@ -5,7 +5,10 @@ import { defineConfig } from "vitest/config";
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
-  base: '/pinstrjs/', // GitHub Pages base path - change to '/' for custom domain
+  // GitHub Pages base path - MUST match your repository name!
+  // For 'pinstrjs' repo: base = '/pinstrjs/'
+  // For 'username.github.io' repo: base = '/'
+  base: '/pinstrjs/',
   server: {
     host: "localhost",
     port: 5173, // Changed from 8080 to avoid macOS WebSocket conflicts
