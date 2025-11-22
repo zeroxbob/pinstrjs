@@ -6,15 +6,23 @@ import { defineConfig } from "vitest/config";
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
   server: {
-    host: "localhost",
+    host: "::",
     port: 8080,
-    strictPort: false,
-    // Completely disable WebSocket-based HMR to avoid browser extension conflicts
-    hmr: false,
-    // Watch files using polling
+    hmr: {
+      // Use polling instead of WebSocket to avoid browser extension conflicts
+      // This prevents "RSV1 must be clear" errors caused by extensions
+      protocol: 'ws',
+      host: 'localhost',
+      port: 8080,
+    },
+    // Disable WebSocket compression
+    ws: {
+      perMessageDeflate: false,
+    },
+    // Watch files using polling as a fallback
     watch: {
       usePolling: true,
-      interval: 500,
+      interval: 1000,
     },
   },
   plugins: [
