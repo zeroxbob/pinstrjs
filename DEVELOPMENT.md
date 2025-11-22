@@ -18,7 +18,7 @@ Due to WebSocket conflicts between Vite's HMR (Hot Module Replacement) and brows
    - **Firefox**: `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
    - **Safari**: `Cmd+Shift+N` (Mac)
 
-3. Navigate to `http://localhost:8080`
+3. Navigate to `http://localhost:5173`
 
 **✅ Benefits:**
 - No WebSocket errors or server crashes
@@ -74,14 +74,19 @@ Then install your Nostr extension in this separate profile.
 
 ### WebSocket "RSV1 must be clear" Errors
 
-**Cause:** Browser extensions interfering with Vite's WebSocket HMR connection
+**Causes:**
+1. Browser extensions interfering with Vite's WebSocket HMR connection
+2. macOS system services conflicting with certain ports (especially port 8080)
 
 **Solutions:**
-1. Use private/incognito mode (easiest)
-2. Use a separate browser profile
-3. Temporarily disable extensions
+1. **Port changed to 5173** - The default Vite port, which avoids macOS conflicts
+2. Use private/incognito mode (easiest)
+3. Use a separate browser profile
+4. Temporarily disable extensions
 
-The error occurs because extensions like Nostr signers intercept WebSocket frames and modify them, violating the WebSocket protocol.
+The error occurs because:
+- Extensions like Nostr signers intercept WebSocket frames and modify them, violating the WebSocket protocol
+- macOS has background services that can interfere with WebSocket connections on certain ports (like 8080)
 
 ### Server Crashes
 
