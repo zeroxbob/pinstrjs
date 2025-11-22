@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Bookmark as BookmarkIcon, Filter } from 'lucide-react';
 import { useUserBookmarks } from '@/hooks/useBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -46,7 +47,7 @@ export default function BookmarksPage() {
       <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="p-2 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl shadow-lg">
                 <BookmarkIcon className="h-6 w-6 text-white" />
               </div>
@@ -58,7 +59,7 @@ export default function BookmarksPage() {
                   Bookmarks on Nostr
                 </p>
               </div>
-            </div>
+            </Link>
             <LoginArea className="max-w-60" />
           </div>
         </div>

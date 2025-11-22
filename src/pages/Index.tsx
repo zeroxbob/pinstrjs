@@ -1,5 +1,5 @@
 import { useSeoMeta } from '@unhead/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Bookmark, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -27,7 +27,7 @@ const Index = () => {
       <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                 <Bookmark className="h-6 w-6 text-white" />
               </div>
@@ -37,7 +37,7 @@ const Index = () => {
                 </h1>
                 <p className="text-xs text-muted-foreground">Bookmarks on Nostr</p>
               </div>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-4">
               {user && <BookmarkDialog />}
