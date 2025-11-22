@@ -1,4 +1,4 @@
-import { ExternalLink, Tag, Calendar, User, Trash2 } from 'lucide-react';
+import { ExternalLink, Tag, Calendar, User, Trash2, Code } from 'lucide-react';
 import type { Bookmark } from '@/hooks/useBookmarks';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -75,6 +75,19 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
     }
   };
 
+  const handleViewJSON = () => {
+    // Create a blob with formatted JSON
+    const json = JSON.stringify(bookmark.event, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // Open in new tab
+    window.open(url, '_blank');
+
+    // Clean up the URL after a short delay
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="space-y-4">
@@ -93,32 +106,44 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
               </p>
             </div>
           </div>
-          {isOwnBookmark && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 flex-shrink-0"
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete bookmark</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this bookmark? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleViewJSON}
+              title="View JSON"
+            >
+              <Code className="h-4 w-4 text-muted-foreground" />
+            </Button>
+            {isOwnBookmark && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={isDeleting}
+                    title="Delete bookmark"
+                  >
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete bookmark</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this bookmark? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
 
         <div>
