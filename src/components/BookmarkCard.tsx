@@ -59,7 +59,12 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+    // If timestamp is in seconds (Unix timestamp), convert to milliseconds
+    // If already in milliseconds, use as-is
+    // Unix timestamps in seconds are ~10 digits, in milliseconds are ~13 digits
+    const timestampMs = timestamp < 10000000000 ? timestamp * 1000 : timestamp;
+
+    return new Date(timestampMs).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
