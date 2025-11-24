@@ -3,10 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Bookmark, Info, Chrome, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getBookmarkletUrl, getEnvironment } from '@/lib/env';
 
 export function BookmarkletInstallPage() {
-  // Production bookmarklet code
-  const bookmarkletCode = `javascript:(function(){ var d=document, w=window, e=w.getSelection, k=d.getSelection, x=d.selection, s=(e?e():(k)?k():(x?x.createRange().text:'')), l=d.location, enc=encodeURIComponent, p='https://pinstr.co/bookmarklet?popup=true', u=enc(l.href), t=enc(d.title), z=enc(s); function a(){ if(!w.open(p+'&url='+u+'&title='+t+'&description='+z,'Pinstr','toolbar=no,scrollbars=yes,width=750,height=700')) l.href=p+'&url='+u+'&title='+t+'&description='+z; } if(/Firefox/.test(navigator.userAgent)) setTimeout(a,0); else a(); })();`;
+  // Auto-detect environment and use appropriate URL
+  const bookmarkletUrl = getBookmarkletUrl();
+  const environment = getEnvironment();
+
+  // Generate bookmarklet code with environment-specific URL
+  const bookmarkletCode = `javascript:(function(){ var d=document, w=window, e=w.getSelection, k=d.getSelection, x=d.selection, s=(e?e():(k)?k():(x?x.createRange().text:'')), l=d.location, enc=encodeURIComponent, p='${bookmarkletUrl}', u=enc(l.href), t=enc(d.title), z=enc(s); function a(){ if(!w.open(p+'&url='+u+'&title='+t+'&description='+z,'Pinstr','toolbar=no,scrollbars=yes,width=750,height=700')) l.href=p+'&url='+u+'&title='+t+'&description='+z; } if(/Firefox/.test(navigator.userAgent)) setTimeout(a,0); else a(); })();`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
@@ -60,6 +65,11 @@ export function BookmarkletInstallPage() {
                 <Info className="h-4 w-4" />
                 <AlertDescription>
                   Once installed, you can click the "Save to Pinstr" bookmark from any webpage to save it to your Nostr bookmarks.
+                  {environment === 'development' && (
+                    <span className="block mt-2 text-orange-600 dark:text-orange-400 font-semibold">
+                      ⚠️ Development Mode: This bookmarklet will save to localhost:5173
+                    </span>
+                  )}
                 </AlertDescription>
               </Alert>
             </CardContent>
