@@ -43,6 +43,13 @@ const Index = () => {
               {user && <BookmarkDialog />}
               <Button
                 variant="outline"
+                onClick={() => navigate('/install-bookmarklet')}
+                className="gap-2 hidden sm:flex"
+              >
+                Install Bookmarklet
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => navigate('/bookmarks')}
                 className="gap-2"
               >

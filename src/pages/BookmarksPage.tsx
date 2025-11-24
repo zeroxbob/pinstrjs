@@ -60,7 +60,16 @@ export default function BookmarksPage() {
                 </p>
               </div>
             </Link>
-            <LoginArea className="max-w-60" />
+            <div className="flex items-center gap-4">
+              <Button
+                asChild
+                variant="outline"
+                className="hidden sm:flex"
+              >
+                <Link to="/install-bookmarklet">Install Bookmarklet</Link>
+              </Button>
+              <LoginArea className="max-w-60" />
+            </div>
           </div>
         </div>
       </header>
