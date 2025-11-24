@@ -1,8 +1,11 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Runs on pushes targeting the default branch
-  push:
+  # Runs after tests pass
+  workflow_run:
+    workflows: ["Test"]
+    types:
+      - completed
     branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
@@ -23,6 +26,8 @@ concurrency:
 jobs:
   # Single deploy job
   deploy:
+    # Only deploy if tests passed
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
