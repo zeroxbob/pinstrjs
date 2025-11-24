@@ -1,17 +1,39 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Bookmark, Info, Chrome, Globe } from 'lucide-react';
+import { Bookmark, Info, Chrome, Globe, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getBookmarkletUrl, getEnvironment } from '@/lib/env';
+import { useState } from 'react';
+import { useToast } from '@/hooks/useToast';
 
 export function BookmarkletInstallPage() {
   // Auto-detect environment and use appropriate URL
   const bookmarkletUrl = getBookmarkletUrl();
   const environment = getEnvironment();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
 
   // Generate bookmarklet code with environment-specific URL
   const bookmarkletCode = `javascript:(function(){ var d=document, w=window, e=w.getSelection, k=d.getSelection, x=d.selection, s=(e?e():(k)?k():(x?x.createRange().text:'')), l=d.location, enc=encodeURIComponent, p='${bookmarkletUrl}', u=enc(l.href), t=enc(d.title), z=enc(s); function a(){ if(!w.open(p+'&url='+u+'&title='+t+'&description='+z,'Pinstr','toolbar=no,scrollbars=yes,width=750,height=700')) l.href=p+'&url='+u+'&title='+t+'&description='+z; } if(/Firefox/.test(navigator.userAgent)) setTimeout(a,0); else a(); })();`;
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(bookmarkletCode);
+      setCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Bookmarklet code copied to clipboard. Now create a new bookmark and paste this as the URL.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "Please select and copy the code manually.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
@@ -43,22 +65,51 @@ export function BookmarkletInstallPage() {
               {/* The Draggable Button */}
               <div className="bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/30 dark:to-indigo-900/30 rounded-lg p-8 text-center border-2 border-dashed border-violet-300 dark:border-violet-700">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                  Drag this button to your bookmarks bar:
+                  <strong>Option 1:</strong> Drag this button to your bookmarks bar:
                 </p>
-                <a
-                  href={bookmarkletCode}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-move"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert('Please drag this button to your bookmarks bar instead of clicking it!');
+                {/* Use dangerouslySetInnerHTML to avoid React warning about javascript: URLs */}
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: `<a
+                      href="${bookmarkletCode.replace(/"/g, '&quot;')}"
+                      class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-move"
+                      onclick="event.preventDefault(); alert('Please drag this button to your bookmarks bar instead of clicking it!'); return false;"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bookmark"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                      Save to Pinstr
+                    </a>`
                   }}
-                >
-                  <Bookmark className="w-5 h-5" />
-                  Save to Pinstr
-                </a>
+                />
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-4">
                   (Don't click it - drag it to your bookmarks bar!)
                 </p>
+
+                {/* Copy to Clipboard Alternative */}
+                <div className="mt-6 pt-6 border-t border-violet-300 dark:border-violet-700">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    <strong>Option 2:</strong> Copy the code and create a bookmark manually:
+                  </p>
+                  <Button
+                    onClick={handleCopyCode}
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Bookmarklet Code
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-3">
+                    After copying, create a new bookmark in your browser and paste the code as the URL.
+                  </p>
+                </div>
               </div>
 
               <Alert>
@@ -87,11 +138,26 @@ export function BookmarkletInstallPage() {
                   <Chrome className="w-5 h-5" />
                   Chrome / Edge / Brave
                 </div>
-                <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-2">
-                  <li>Press <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm">Ctrl+Shift+B</kbd> (Windows/Linux) or <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm">⌘+Shift+B</kbd> (Mac) to show the bookmarks bar</li>
-                  <li>Drag the <strong>"Save to Pinstr"</strong> button above to your bookmarks bar</li>
-                  <li>That's it! The bookmarklet is installed</li>
-                </ol>
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-gray-200 mb-2">Option 1: Drag and Drop</p>
+                    <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-2">
+                      <li>Press <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm">Ctrl+Shift+B</kbd> (Windows/Linux) or <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm">⌘+Shift+B</kbd> (Mac) to show the bookmarks bar</li>
+                      <li>Drag the <strong>"Save to Pinstr"</strong> button above to your bookmarks bar</li>
+                      <li>That's it! The bookmarklet is installed</li>
+                    </ol>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-gray-200 mb-2">Option 2: Copy and Paste</p>
+                    <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-2">
+                      <li>Click <strong>"Copy Bookmarklet Code"</strong> button above</li>
+                      <li>Right-click your bookmarks bar → <strong>Add page</strong> or <strong>Add bookmark</strong></li>
+                      <li>Name it <strong>"Save to Pinstr"</strong></li>
+                      <li>Paste the copied code into the <strong>URL</strong> field</li>
+                      <li>Click <strong>Save</strong></li>
+                    </ol>
+                  </div>
+                </div>
               </div>
 
               {/* Firefox */}
