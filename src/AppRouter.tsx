@@ -8,7 +8,7 @@ import NotFound from "./pages/NotFound";
 
 export function AppRouter() {
   return (
-    <BrowserRouter basename="/pinstrjs">
+    <BrowserRouter>
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />
