@@ -16,6 +16,10 @@ export function BookmarkletPage() {
   const { user } = useCurrentUser();
   const createBookmark = useCreateBookmark();
 
+  // Extension detection state
+  const [isCheckingExtension, setIsCheckingExtension] = useState(true);
+  const [extensionAvailable, setExtensionAvailable] = useState(false);
+
   // Get URL parameters from bookmarklet
   const urlParam = searchParams.get('url');
   const titleParam = searchParams.get('title');
@@ -28,6 +32,37 @@ export function BookmarkletPage() {
   const [description, setDescription] = useState(decodeURIComponent(descriptionParam || ''));
   const [tags, setTags] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Check for Nostr browser extension with polling
+  useEffect(() => {
+    let attempts = 0;
+    const maxAttempts = 10; // Try for 5 seconds (10 attempts × 500ms)
+    const interval = 500; // Check every 500ms
+
+    const checkExtension = () => {
+      attempts++;
+
+      // Check if window.nostr exists (NIP-07 extension)
+      if (window.nostr) {
+        setExtensionAvailable(true);
+        setIsCheckingExtension(false);
+        return;
+      }
+
+      // Stop checking after max attempts
+      if (attempts >= maxAttempts) {
+        setExtensionAvailable(false);
+        setIsCheckingExtension(false);
+        return;
+      }
+
+      // Try again
+      setTimeout(checkExtension, interval);
+    };
+
+    // Start checking immediately
+    checkExtension();
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -57,15 +92,94 @@ export function BookmarkletPage() {
     }
   };
 
-  // Auto-submit if user is logged in and all required fields are present
+  // Auto-submit if user is logged in, extension is available, and all required fields are present
   useEffect(() => {
-    if (user && urlParam && titleParam && !success && !createBookmark.isPending) {
+    if (user && extensionAvailable && urlParam && titleParam && !success && !createBookmark.isPending) {
       handleSubmit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, urlParam, titleParam]);
+  }, [user, extensionAvailable, urlParam, titleParam]);
 
-  // Loading state while checking user authentication
+  // Loading state while checking for browser extension
+  if (isCheckingExtension) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
+        <div className="container max-w-2xl mx-auto">
+          <Card>
+            <CardContent className="pt-12 pb-12 text-center">
+              <Loader2 className="w-16 h-16 text-violet-500 mx-auto mb-4 animate-spin" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Detecting Nostr Extension...
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Checking for your Nostr browser extension. Please wait a moment.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state if extension is not available
+  if (!extensionAvailable) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
+        <div className="container max-w-2xl mx-auto">
+          {/* Header */}
+          <Link
+            to="/"
+            className="inline-flex items-center gap-3 mb-8 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center">
+              <Bookmark className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pinstr</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Bookmarks on Nostr</p>
+            </div>
+          </Link>
+
+          <Card className="border-amber-200 dark:border-amber-800">
+            <CardContent className="pt-12 pb-12 text-center space-y-6">
+              <AlertCircle className="w-16 h-16 text-amber-500 mx-auto" />
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  Browser Extension Not Available
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  We couldn't detect a Nostr browser extension. To use the bookmarklet, you need to install a Nostr extension.
+                </p>
+              </div>
+
+              <div className="max-w-md mx-auto text-left space-y-4 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                <p className="font-semibold text-gray-900 dark:text-white">Popular Nostr Extensions:</p>
+                <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <li>• <strong>Alby</strong> - Bitcoin wallet + Nostr extension</li>
+                  <li>• <strong>nos2x</strong> - Lightweight Nostr extension</li>
+                  <li>• <strong>Flamingo</strong> - Feature-rich Nostr extension</li>
+                </ul>
+                <p className="text-xs text-gray-500 pt-2">
+                  After installing an extension, please reload this page or try the bookmarklet again.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-center">
+                <Button onClick={() => window.location.reload()}>
+                  Retry Detection
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/')}>
+                  Go Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Login prompt if no user but extension is available
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
