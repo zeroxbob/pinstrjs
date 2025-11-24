@@ -47,11 +47,14 @@ jobs:
           npm ci
           npm run build
           touch dist/.nojekyll
+          cp CNAME dist/CNAME
           cp dist/index.html dist/404.html
           echo "Verifying build output:"
           ls -la dist/
           echo "Checking index.html content:"
           head -20 dist/index.html
+          echo "Checking for .nojekyll:"
+          ls -la dist/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

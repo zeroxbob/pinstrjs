@@ -12,6 +12,20 @@ This guide explains how to deploy your Pinstr app to GitHub Pages.
 
 ---
 
+## ⚠️ CRITICAL: Verify Source Configuration
+
+**IMPORTANT:** After setting up a custom domain or any changes to Pages settings, GitHub may reset the deployment source. You MUST verify:
+
+1. Go to your repository **Settings** → **Pages**
+2. Under **Build and deployment** → **Source**:
+   - ✅ **MUST BE:** "GitHub Actions"
+   - ❌ **NOT:** "Deploy from a branch"
+3. If it shows "Deploy from a branch", change it to "GitHub Actions" and save
+
+**Why this matters:** If Pages is set to "Deploy from a branch", it will serve the source `index.html` (development version with `/src/main.tsx`) instead of the built `dist/index.html` (production version with `/assets/index-*.js`), causing MIME type errors.
+
+---
+
 ## 🚀 GitHub Pages Setup
 
 ### **Step 1: Enable GitHub Pages in Repository Settings**
