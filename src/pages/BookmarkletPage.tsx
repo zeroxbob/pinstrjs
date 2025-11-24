@@ -92,13 +92,7 @@ export function BookmarkletPage() {
     }
   };
 
-  // Auto-submit if user is logged in, extension is available, and all required fields are present
-  useEffect(() => {
-    if (user && extensionAvailable && urlParam && titleParam && !success && !createBookmark.isPending) {
-      handleSubmit();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, extensionAvailable, urlParam, titleParam]);
+  // Removed auto-submit - users should review and manually submit the form
 
   // Loading state while checking for browser extension
   if (isCheckingExtension) {
@@ -206,20 +200,45 @@ export function BookmarkletPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>URL</Label>
-                <Input value={url} readOnly className="bg-gray-50 dark:bg-gray-800" />
-              </div>
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input value={title} readOnly className="bg-gray-50 dark:bg-gray-800" />
-              </div>
-              {description && (
+              <form className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea value={description} readOnly className="bg-gray-50 dark:bg-gray-800" rows={3} />
+                  <Label htmlFor="url-preview">URL *</Label>
+                  <Input
+                    id="url-preview"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://example.com"
+                  />
                 </div>
-              )}
+                <div className="space-y-2">
+                  <Label htmlFor="title-preview">Title *</Label>
+                  <Input
+                    id="title-preview"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Page title"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description-preview">Description</Label>
+                  <Textarea
+                    id="description-preview"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Add your notes about this bookmark..."
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tags-preview">Tags</Label>
+                  <Input
+                    id="tags-preview"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="tech, article, tutorial (comma-separated)"
+                  />
+                </div>
+              </form>
 
               <div className="pt-4 border-t">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
