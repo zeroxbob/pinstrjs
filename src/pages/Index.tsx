@@ -1,6 +1,6 @@
 import { useSeoMeta } from '@unhead/react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Bookmark, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Bookmark, Loader2, AlertCircle, ArrowRight, Settings } from 'lucide-react';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
@@ -55,6 +55,14 @@ const Index = () => {
               >
                 My Bookmarks
                 <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/settings')}
+                title="Settings"
+              >
+                <Settings className="h-5 w-5" />
               </Button>
               <LoginArea className="max-w-60" />
             </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Bookmark as BookmarkIcon, Filter } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Bookmark as BookmarkIcon, Filter, Settings } from 'lucide-react';
 import { useUserBookmarks } from '@/hooks/useBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 
 export default function BookmarksPage() {
+  const navigate = useNavigate();
   const { user } = useCurrentUser();
   const { data: bookmarks, isLoading } = useUserBookmarks(user?.pubkey);
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,6 +68,14 @@ export default function BookmarksPage() {
                 className="hidden sm:flex"
               >
                 <Link to="/install-bookmarklet">Install Bookmarklet</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/settings')}
+                title="Settings"
+              >
+                <Settings className="h-5 w-5" />
               </Button>
               <LoginArea className="max-w-60" />
             </div>
