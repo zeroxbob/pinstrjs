@@ -36,12 +36,32 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // Remove duplicates
       const uniqueUrls = [...new Set(urlVariants)];
 
+      console.log('[useReadToRelayContent] Querying for:', {
+        originalUrl: url,
+        urlVariants: uniqueUrls,
+        filter: {
+          kinds: [30023],
+          '#r': uniqueUrls,
+          limit: 10,
+        }
+      });
+
       // Query for NIP-23 long-form articles with 'r' tag matching any URL variant
       const events = await nostr.query([{
         kinds: [30023],  // NIP-23 long-form content
         '#r': uniqueUrls,
         limit: 10,  // Multiple people may have saved the same URL
       }], { signal });
+
+      console.log('[useReadToRelayContent] Query results:', {
+        url,
+        eventsFound: events.length,
+        events: events.map(e => ({
+          id: e.id.substring(0, 8),
+          title: e.tags.find(([n]) => n === 'title')?.[1],
+          rTag: e.tags.find(([n]) => n === 'r')?.[1],
+        })),
+      });
 
       if (events.length === 0) return null;
 
