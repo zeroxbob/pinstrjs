@@ -26,11 +26,20 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
 
       // Normalize URL - try multiple variants to maximize matches
       const normalizedUrl = url.replace(/^https?:\/\//, '');
+      const withoutWww = normalizedUrl.replace(/^www\./, '');
+      const withWww = withoutWww.startsWith('www.') ? withoutWww : `www.${withoutWww}`;
+
       const urlVariants = [
-        url,
-        `https://${normalizedUrl}`,
-        `http://${normalizedUrl}`,
-        normalizedUrl,
+        url,                              // Original URL as-is
+        `https://${normalizedUrl}`,       // With https://
+        `http://${normalizedUrl}`,        // With http://
+        normalizedUrl,                    // Without scheme
+        `https://${withoutWww}`,          // Without www + https
+        `http://${withoutWww}`,           // Without www + http
+        withoutWww,                       // Without www, without scheme
+        `https://${withWww}`,             // With www + https
+        `http://${withWww}`,              // With www + http
+        withWww,                          // With www, without scheme
       ];
 
       // Remove duplicates
@@ -89,12 +98,24 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           const rTag = event.tags.find(([name]) => name === 'r')?.[1] || '';
           const dTag = event.tags.find(([name]) => name === 'd')?.[1] || '';
 
-          // Check if any of these tags contain our URL (allowing for timestamp suffixes)
-          return uniqueUrls.some(variant =>
-            urlTag.includes(variant) ||
-            rTag.includes(variant) ||
-            dTag.includes(variant)
-          );
+          // Normalize tags for comparison (remove scheme and www)
+          const normalizeForMatch = (str: string) =>
+            str.replace(/^https?:\/\//, '').replace(/^www\./, '');
+
+          const normalizedUrlTag = normalizeForMatch(urlTag);
+          const normalizedRTag = normalizeForMatch(rTag);
+          const normalizedDTag = normalizeForMatch(dTag);
+
+          // Check if any of these tags match our URL variants (allowing for timestamp suffixes)
+          return uniqueUrls.some(variant => {
+            const normalizedVariant = normalizeForMatch(variant);
+            return normalizedUrlTag.includes(normalizedVariant) ||
+              normalizedRTag.includes(normalizedVariant) ||
+              normalizedDTag.includes(normalizedVariant) ||
+              normalizedVariant.includes(normalizedUrlTag) ||
+              normalizedVariant.includes(normalizedRTag) ||
+              normalizedVariant.includes(normalizedDTag);
+          });
         });
 
         console.log('[useReadToRelayContent] Client-side filter found:', uniqueEvents.length);
