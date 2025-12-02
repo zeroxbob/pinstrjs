@@ -47,13 +47,21 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
 
       // Query for NIP-23 long-form articles with BOTH 'r' tag and 'url' tag matching any URL variant
       // ReadToRelay may use either tag depending on version
+      // Query ALL relays (not just the fastest) to maximize chance of finding content
+      const relayGroup = nostr.group([
+        'wss://relay.damus.io',
+        'wss://relay.ditto.pub',
+        'wss://relay.nostr.band',
+        'wss://relay.primal.net',
+      ]);
+
       const [eventsWithRTag, eventsWithUrlTag] = await Promise.all([
-        nostr.query([{
+        relayGroup.query([{
           kinds: [30023],  // NIP-23 long-form content
           '#r': uniqueUrls,
           limit: 10,
         }], { signal }),
-        nostr.query([{
+        relayGroup.query([{
           kinds: [30023],  // NIP-23 long-form content
           '#url': uniqueUrls,
           limit: 10,
@@ -62,9 +70,36 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
 
       // Combine results and deduplicate by event ID
       const allEvents = [...eventsWithRTag, ...eventsWithUrlTag];
-      const uniqueEvents = allEvents.filter((event, index, self) =>
+      let uniqueEvents = allEvents.filter((event, index, self) =>
         index === self.findIndex((e) => e.id === event.id)
       );
+
+      // If no matches found via tags, try querying ALL kind 30023 events and filter client-side
+      // This handles cases where relays don't index 'url' tags properly
+      if (uniqueEvents.length === 0) {
+        console.log('[useReadToRelayContent] No tag matches, trying client-side filter...');
+        const allArticles = await relayGroup.query([{
+          kinds: [30023],
+          limit: 100,  // Get recent articles
+        }], { signal });
+
+        // Filter by checking if any tag contains our URL
+        uniqueEvents = allArticles.filter(event => {
+          const urlTag = event.tags.find(([name]) => name === 'url')?.[1] || '';
+          const rTag = event.tags.find(([name]) => name === 'r')?.[1] || '';
+          const dTag = event.tags.find(([name]) => name === 'd')?.[1] || '';
+
+          // Check if any of these tags contain our URL (allowing for timestamp suffixes)
+          return uniqueUrls.some(variant =>
+            urlTag.includes(variant) ||
+            rTag.includes(variant) ||
+            dTag.includes(variant)
+          );
+        });
+
+        console.log('[useReadToRelayContent] Client-side filter found:', uniqueEvents.length);
+      }
+
       const events = uniqueEvents;
 
       console.log('[useReadToRelayContent] Query results:', {
