@@ -14,7 +14,7 @@ export interface ReadToRelayArticle {
 /**
  * Queries Nostr relays for ReadToRelay articles matching a URL.
  * ReadToRelay saves articles as NIP-23 long-form content (kind 30023)
- * with an 'r' tag containing the original URL.
+ * with a 'url' tag (or 'r' tag) containing the original URL.
  */
 export function useReadToRelayContent(url: string, enabled: boolean = true) {
   const { nostr } = useNostr();
@@ -39,19 +39,33 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       console.log('[useReadToRelayContent] Querying for:', {
         originalUrl: url,
         urlVariants: uniqueUrls,
-        filter: {
-          kinds: [30023],
-          '#r': uniqueUrls,
-          limit: 10,
-        }
+        filters: [
+          { kinds: [30023], '#r': uniqueUrls, limit: 10 },
+          { kinds: [30023], '#url': uniqueUrls, limit: 10 },
+        ]
       });
 
-      // Query for NIP-23 long-form articles with 'r' tag matching any URL variant
-      const events = await nostr.query([{
-        kinds: [30023],  // NIP-23 long-form content
-        '#r': uniqueUrls,
-        limit: 10,  // Multiple people may have saved the same URL
-      }], { signal });
+      // Query for NIP-23 long-form articles with BOTH 'r' tag and 'url' tag matching any URL variant
+      // ReadToRelay may use either tag depending on version
+      const [eventsWithRTag, eventsWithUrlTag] = await Promise.all([
+        nostr.query([{
+          kinds: [30023],  // NIP-23 long-form content
+          '#r': uniqueUrls,
+          limit: 10,
+        }], { signal }),
+        nostr.query([{
+          kinds: [30023],  // NIP-23 long-form content
+          '#url': uniqueUrls,
+          limit: 10,
+        }], { signal }),
+      ]);
+
+      // Combine results and deduplicate by event ID
+      const allEvents = [...eventsWithRTag, ...eventsWithUrlTag];
+      const uniqueEvents = allEvents.filter((event, index, self) =>
+        index === self.findIndex((e) => e.id === event.id)
+      );
+      const events = uniqueEvents;
 
       console.log('[useReadToRelayContent] Query results:', {
         url,
@@ -60,6 +74,7 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           id: e.id.substring(0, 8),
           title: e.tags.find(([n]) => n === 'title')?.[1],
           rTag: e.tags.find(([n]) => n === 'r')?.[1],
+          urlTag: e.tags.find(([n]) => n === 'url')?.[1],
         })),
       });
 
@@ -71,7 +86,10 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // Transform events into article objects
       const articles: ReadToRelayArticle[] = events.map(event => {
         const title = event.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
-        const originalUrl = event.tags.find(([name]) => name === 'r')?.[1] || url;
+        // Check both 'url' tag (used by ReadToRelay) and 'r' tag (NIP-23 standard)
+        const originalUrl = event.tags.find(([name]) => name === 'url')?.[1]
+          || event.tags.find(([name]) => name === 'r')?.[1]
+          || url;
         const publishedAtTag = event.tags.find(([name]) => name === 'published_at')?.[1];
         const publishedAt = publishedAtTag ? parseInt(publishedAtTag) : event.created_at;
 

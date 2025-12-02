@@ -64,18 +64,34 @@ export function DebugReadToRelayPage() {
     setResults(`Querying relays for URL: ${testUrl}\nTrying variants: ${uniqueUrls.join(', ')}\n\n`);
 
     try {
-      const events = await nostr.query([{
-        kinds: [30023],
-        '#r': uniqueUrls,
-        limit: 10,
-      }], { signal: AbortSignal.timeout(5000) });
+      // Query for BOTH 'r' tag and 'url' tag (ReadToRelay uses 'url' tag)
+      const [eventsWithRTag, eventsWithUrlTag] = await Promise.all([
+        nostr.query([{
+          kinds: [30023],
+          '#r': uniqueUrls,
+          limit: 10,
+        }], { signal: AbortSignal.timeout(5000) }),
+        nostr.query([{
+          kinds: [30023],
+          '#url': uniqueUrls,
+          limit: 10,
+        }], { signal: AbortSignal.timeout(5000) }),
+      ]);
+
+      // Combine and deduplicate
+      const allEvents = [...eventsWithRTag, ...eventsWithUrlTag];
+      const events = allEvents.filter((event, index, self) =>
+        index === self.findIndex((e) => e.id === event.id)
+      );
 
       const resultText = events.length > 0
         ? `✅ Found ${events.length} saved ${events.length === 1 ? 'copy' : 'copies'}:\n\n` +
           events.map((e, i) => {
             const title = e.tags.find(([n]) => n === 'title')?.[1] || 'Untitled';
+            const urlTag = e.tags.find(([n]) => n === 'url')?.[1];
             const rTag = e.tags.find(([n]) => n === 'r')?.[1];
-            return `${i + 1}. ${title}\n   Saved URL: ${rTag}\n   Event ID: ${e.id.substring(0, 16)}...`;
+            const savedUrl = urlTag || rTag || 'No URL tag found';
+            return `${i + 1}. ${title}\n   Saved URL: ${savedUrl}\n   Event ID: ${e.id.substring(0, 16)}...`;
           }).join('\n\n')
         : `❌ No saved copies found for this URL on your configured relays.`;
 

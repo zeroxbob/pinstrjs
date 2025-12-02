@@ -58,7 +58,9 @@ export function ArticlePage() {
   }
 
   const title = event.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
-  const originalUrl = event.tags.find(([name]) => name === 'r')?.[1];
+  // Check both 'url' tag (used by ReadToRelay) and 'r' tag (NIP-23 standard)
+  const originalUrl = event.tags.find(([name]) => name === 'url')?.[1]
+    || event.tags.find(([name]) => name === 'r')?.[1];
   const client = event.tags.find(([name]) => name === 'client')?.[1];
 
   return (
