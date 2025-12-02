@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { genUserName } from '@/lib/genUserName';
 import { useToast } from '@/hooks/useToast';
+import { ReadToRelayBadge } from '@/components/ReadToRelayBadge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -179,15 +180,18 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
             <Calendar className="h-3 w-3" />
             <span>{formatDate(bookmark.publishedAt || bookmark.createdAt)}</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleViewJSON}
-            title="View JSON"
-          >
-            <Code className="h-4 w-4 text-muted-foreground" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <ReadToRelayBadge url={bookmark.url} />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleViewJSON}
+              title="View JSON"
+            >
+              <Code className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
