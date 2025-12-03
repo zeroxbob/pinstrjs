@@ -90,10 +90,22 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         console.log('[useReadToRelayContent] 📋 Bookmark URL:', url);
         console.log('[useReadToRelayContent] 🔄 URL Variants Created:', uniqueUrls);
 
-        const allArticles = await relayGroup.query([{
-          kinds: [30023],
-          limit: 500,  // Get more articles to improve match chances
-        }], { signal });
+        let allArticles;
+        try {
+          console.log('[useReadToRelayContent] 🔍 Starting query for all articles...');
+          allArticles = await relayGroup.query([{
+            kinds: [30023],
+            limit: 500,  // Get more articles to improve match chances
+          }], { signal });
+          console.log('[useReadToRelayContent] ✅ Query completed successfully');
+        } catch (error) {
+          console.error('[useReadToRelayContent] ❌ Error fetching all articles:', error);
+          console.error('[useReadToRelayContent] Error details:', {
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : String(error),
+          });
+          return null;  // Return null to indicate no articles found
+        }
 
         console.log('[useReadToRelayContent] 📚 Total articles fetched from relays:', allArticles.length);
 
