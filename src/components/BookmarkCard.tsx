@@ -114,7 +114,14 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
 
         <div>
           <CardTitle className="text-xl mb-2 line-clamp-2">
-            {bookmark.title || bookmark.url}
+            <a
+              href={bookmark.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline cursor-pointer"
+            >
+              {bookmark.title || bookmark.url}
+            </a>
           </CardTitle>
           {bookmark.description && (
             <CardDescription className="line-clamp-3">
