@@ -5,22 +5,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 
+interface DebugResults {
+  step1?: Record<string, unknown>;
+  step2?: Record<string, unknown>;
+  step3?: Record<string, unknown>;
+  step4?: Record<string, unknown>;
+  step5?: Record<string, unknown>;
+  error?: string;
+}
+
 export function DetailedDebugPage() {
   const { nostr } = useNostr();
   const [url, setUrl] = useState('www.yesigiveafig.com/p/part-1-my-life-is-a-lie');
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<Record<string, unknown> | null>(null);
+  const [results, setResults] = useState<DebugResults | null>(null);
 
   const runDetailedDebug = async () => {
     setIsLoading(true);
     setResults(null);
 
     try {
-      const debugResults = {
-        step1: {} as Record<string, unknown>,
-        step2: {} as Record<string, unknown>,
-        step3: {} as Record<string, unknown>,
-        step4: {} as Record<string, unknown>,
+      const debugResults: DebugResults = {
+        step1: {},
+        step2: {},
+        step3: {},
+        step4: {},
       };
 
       // STEP 1: Generate URL variants
@@ -185,6 +194,27 @@ export function DetailedDebugPage() {
 
       debugResults.step4.matchCount = matchedArticles.length;
 
+      // STEP 5: Check if a bookmark exists for this URL
+      const bookmarkIdentifier = normalizedUrl; // Bookmarks use URL without scheme
+      const bookmarkEvents = await relayGroup.query([{
+        kinds: [39701],
+        '#d': [bookmarkIdentifier],
+        limit: 5,
+      }], { signal: AbortSignal.timeout(5000) });
+
+      debugResults.step5 = {
+        bookmarkIdentifier,
+        bookmarkQuery: { kinds: [39701], '#d': [bookmarkIdentifier] },
+        bookmarksFound: bookmarkEvents.length,
+        bookmarks: bookmarkEvents.map(e => ({
+          id: e.id.substring(0, 8),
+          dTag: e.tags.find(([n]) => n === 'd')?.[1],
+          title: e.tags.find(([n]) => n === 'title')?.[1],
+          allTags: e.tags,
+          created_at: e.created_at,
+        })),
+      };
+
       setResults(debugResults);
     } catch (error) {
       setResults({ error: String(error) });
@@ -273,6 +303,19 @@ export function DetailedDebugPage() {
               </div>
             </CardContent>
           </Card>
+
+          {results.step5 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Step 5: Bookmark Check</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="bg-muted p-4 rounded-lg overflow-auto text-xs">
+                  {JSON.stringify(results.step5, null, 2)}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>

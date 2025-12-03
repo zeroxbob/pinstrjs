@@ -107,9 +107,11 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           const rTag = event.tags.find(([name]) => name === 'r')?.[1] || '';
           const dTag = event.tags.find(([name]) => name === 'd')?.[1] || '';
 
-          // Normalize tags for comparison (remove scheme and www)
+          // Normalize tags for comparison (remove scheme and www, and strip trailing slashes)
           const normalizeForMatch = (str: string) =>
-            str.replace(/^https?:\/\//, '').replace(/^www\./, '');
+            str.replace(/^https?:\/\//, '')
+              .replace(/^www\./, '')
+              .replace(/\/$/, '');  // Remove trailing slash
 
           const normalizedUrlTag = normalizeForMatch(urlTag);
           const normalizedRTag = normalizeForMatch(rTag);
@@ -119,18 +121,26 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           const decodedDTag = tryDecodeBase64(dTag);
           const normalizedDecodedDTag = decodedDTag ? normalizeForMatch(decodedDTag) : '';
 
-          // Check if any of these tags match our URL variants (allowing for timestamp suffixes)
-          return uniqueUrls.some(variant => {
+          // Check if any of these tags match our URL variants
+          const matched = uniqueUrls.some(variant => {
             const normalizedVariant = normalizeForMatch(variant);
-            return normalizedUrlTag.includes(normalizedVariant) ||
-              normalizedRTag.includes(normalizedVariant) ||
-              normalizedDTag.includes(normalizedVariant) ||
-              normalizedDecodedDTag.includes(normalizedVariant) ||
-              normalizedVariant.includes(normalizedUrlTag) ||
-              normalizedVariant.includes(normalizedRTag) ||
-              normalizedVariant.includes(normalizedDTag) ||
-              normalizedVariant.includes(normalizedDecodedDTag);
+
+            // For url tag and r tag, do exact match (they should contain clean URLs)
+            if (normalizedUrlTag && normalizedUrlTag === normalizedVariant) return true;
+            if (normalizedRTag && normalizedRTag === normalizedVariant) return true;
+
+            // For d-tag, allow prefix match (to handle timestamp suffixes like "-1764004814")
+            if (normalizedDTag && normalizedDTag.startsWith(normalizedVariant + '-')) return true;
+            if (normalizedDTag && normalizedDTag === normalizedVariant) return true;
+
+            // Same for decoded d-tag
+            if (normalizedDecodedDTag && normalizedDecodedDTag.startsWith(normalizedVariant + '-')) return true;
+            if (normalizedDecodedDTag && normalizedDecodedDTag === normalizedVariant) return true;
+
+            return false;
           });
+
+          return matched;
         });
 
         console.log('[useReadToRelayContent] Client-side filter found:', uniqueEvents.length);
