@@ -97,63 +97,24 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar className="h-10 w-10 flex-shrink-0">
-              <AvatarImage src={profileImage} alt={displayName} />
-              <AvatarFallback>
-                <User className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {getDomain(bookmark.url)}
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 flex-shrink-0">
+            <AvatarImage src={profileImage} alt={displayName} />
+            <AvatarFallback>
+              <User className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium truncate">{displayName}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {getDomain(bookmark.url)}
+            </p>
           </div>
-          {isOwnBookmark && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={isDeleting}
-                    title="Delete bookmark"
-                  >
-                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete bookmark</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this bookmark? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          )}
         </div>
 
         <div>
           <CardTitle className="text-xl mb-2 line-clamp-2">
-            <a
-              href={bookmark.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline hover:text-primary transition-colors flex items-start gap-2"
-            >
-              <span className="flex-1">{bookmark.title || bookmark.url}</span>
-              <ExternalLink className="h-4 w-4 flex-shrink-0 mt-1 text-muted-foreground" />
-            </a>
+            {bookmark.title || bookmark.url}
           </CardTitle>
           {bookmark.description && (
             <CardDescription className="line-clamp-3">
@@ -180,7 +141,16 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
             <Calendar className="h-3 w-3" />
             <span>{formatDate(bookmark.publishedAt || bookmark.createdAt)}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => window.open(bookmark.url, '_blank')}
+              title="Visit external link"
+            >
+              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+            </Button>
             <ReadToRelayBadge url={bookmark.url} />
             <Button
               variant="ghost"
@@ -191,6 +161,33 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
             >
               <Code className="h-4 w-4 text-muted-foreground" />
             </Button>
+            {isOwnBookmark && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={isDeleting}
+                    title="Delete bookmark"
+                  >
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete bookmark</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this bookmark? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       </CardContent>
