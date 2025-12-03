@@ -95,7 +95,7 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
+    <Card className="hover:shadow-lg transition-shadow duration-200 flex flex-col">
       <CardHeader className="space-y-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 flex-shrink-0">
@@ -124,9 +124,9 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-col flex-1">
         {bookmark.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-3">
             {bookmark.tags.map((tag, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
                 <Tag className="h-3 w-3 mr-1" />
@@ -136,7 +136,7 @@ export function BookmarkCard({ bookmark }: BookmarkCardProps) {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 mt-auto">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Calendar className="h-3 w-3" />
             <span>{formatDate(bookmark.publishedAt || bookmark.createdAt)}</span>
