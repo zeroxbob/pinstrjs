@@ -98,17 +98,33 @@ export function DetailedDebugPage() {
       // STEP 4: Get ALL kind 30023 events and try client-side matching
       const allArticles = await relayGroup.query([{
         kinds: [30023],
-        limit: 100,
-      }], { signal: AbortSignal.timeout(5000) });
+        limit: 500,
+      }], { signal: AbortSignal.timeout(10000) });
 
-      debugResults.step4.totalArticles = allArticles.length;
-      debugResults.step4.allArticlesPreview = allArticles.slice(0, 10).map(e => ({
-        id: e.id.substring(0, 8),
-        title: e.tags.find(([n]) => n === 'title')?.[1],
-        urlTag: e.tags.find(([n]) => n === 'url')?.[1],
-        rTag: e.tags.find(([n]) => n === 'r')?.[1],
-        dTag: e.tags.find(([n]) => n === 'd')?.[1],
-      }));
+      // Helper to decode base64 safely
+      const tryDecodeBase64 = (str: string): string | null => {
+        try {
+          return atob(str);
+        } catch {
+          return null;
+        }
+      };
+
+      debugResults.step4 = {
+        totalArticles: allArticles.length,
+        allArticlesPreview: allArticles.slice(0, 10).map(e => {
+          const dTag = e.tags.find(([n]) => n === 'd')?.[1] || '';
+          const decodedDTag = tryDecodeBase64(dTag);
+          return {
+            id: e.id.substring(0, 8),
+            title: e.tags.find(([n]) => n === 'title')?.[1],
+            urlTag: e.tags.find(([n]) => n === 'url')?.[1],
+            rTag: e.tags.find(([n]) => n === 'r')?.[1],
+            dTag,
+            decodedDTag,
+          };
+        }),
+      };
 
       // Try matching
       const normalizeForMatch = (str: string) =>
@@ -123,14 +139,20 @@ export function DetailedDebugPage() {
         const normalizedRTag = normalizeForMatch(rTag);
         const normalizedDTag = normalizeForMatch(dTag);
 
+        // Try to decode d-tag as base64 (ReadToRelay might encode URLs)
+        const decodedDTag = tryDecodeBase64(dTag);
+        const normalizedDecodedDTag = decodedDTag ? normalizeForMatch(decodedDTag) : '';
+
         const matches = uniqueUrls.some(variant => {
           const normalizedVariant = normalizeForMatch(variant);
           return normalizedUrlTag.includes(normalizedVariant) ||
             normalizedRTag.includes(normalizedVariant) ||
             normalizedDTag.includes(normalizedVariant) ||
+            normalizedDecodedDTag.includes(normalizedVariant) ||
             normalizedVariant.includes(normalizedUrlTag) ||
             normalizedVariant.includes(normalizedRTag) ||
-            normalizedVariant.includes(normalizedDTag);
+            normalizedVariant.includes(normalizedDTag) ||
+            normalizedVariant.includes(normalizedDecodedDTag);
         });
 
         if (matches) {
@@ -138,7 +160,8 @@ export function DetailedDebugPage() {
           console.log('[CLIENT-SIDE MATCH]', {
             eventId: event.id.substring(0, 8),
             urlTag, rTag, dTag,
-            normalizedUrlTag, normalizedRTag, normalizedDTag,
+            decodedDTag,
+            normalizedUrlTag, normalizedRTag, normalizedDTag, normalizedDecodedDTag,
             searchingFor: uniqueUrls.map(normalizeForMatch),
           });
         }
@@ -146,14 +169,19 @@ export function DetailedDebugPage() {
         return matches;
       });
 
-      debugResults.step4.matchedArticles = matchedArticles.map(e => ({
-        id: e.id,
-        title: e.tags.find(([n]) => n === 'title')?.[1],
-        urlTag: e.tags.find(([n]) => n === 'url')?.[1],
-        rTag: e.tags.find(([n]) => n === 'r')?.[1],
-        dTag: e.tags.find(([n]) => n === 'd')?.[1],
-        allTags: e.tags,
-      }));
+      debugResults.step4.matchedArticles = matchedArticles.map(e => {
+        const dTag = e.tags.find(([n]) => n === 'd')?.[1] || '';
+        const decodedDTag = tryDecodeBase64(dTag);
+        return {
+          id: e.id,
+          title: e.tags.find(([n]) => n === 'title')?.[1],
+          urlTag: e.tags.find(([n]) => n === 'url')?.[1],
+          rTag: e.tags.find(([n]) => n === 'r')?.[1],
+          dTag,
+          decodedDTag,
+          allTags: e.tags,
+        };
+      });
 
       debugResults.step4.matchCount = matchedArticles.length;
 

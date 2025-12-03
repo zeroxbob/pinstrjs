@@ -89,8 +89,17 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         console.log('[useReadToRelayContent] No tag matches, trying client-side filter...');
         const allArticles = await relayGroup.query([{
           kinds: [30023],
-          limit: 100,  // Get recent articles
+          limit: 500,  // Get more articles to improve match chances
         }], { signal });
+
+        // Helper to decode base64 safely
+        const tryDecodeBase64 = (str: string): string | null => {
+          try {
+            return atob(str);
+          } catch {
+            return null;
+          }
+        };
 
         // Filter by checking if any tag contains our URL
         uniqueEvents = allArticles.filter(event => {
@@ -106,15 +115,21 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           const normalizedRTag = normalizeForMatch(rTag);
           const normalizedDTag = normalizeForMatch(dTag);
 
+          // Try to decode d-tag as base64 (ReadToRelay might encode URLs in d-tag)
+          const decodedDTag = tryDecodeBase64(dTag);
+          const normalizedDecodedDTag = decodedDTag ? normalizeForMatch(decodedDTag) : '';
+
           // Check if any of these tags match our URL variants (allowing for timestamp suffixes)
           return uniqueUrls.some(variant => {
             const normalizedVariant = normalizeForMatch(variant);
             return normalizedUrlTag.includes(normalizedVariant) ||
               normalizedRTag.includes(normalizedVariant) ||
               normalizedDTag.includes(normalizedVariant) ||
+              normalizedDecodedDTag.includes(normalizedVariant) ||
               normalizedVariant.includes(normalizedUrlTag) ||
               normalizedVariant.includes(normalizedRTag) ||
-              normalizedVariant.includes(normalizedDTag);
+              normalizedVariant.includes(normalizedDTag) ||
+              normalizedVariant.includes(normalizedDecodedDTag);
           });
         });
 
