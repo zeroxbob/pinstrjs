@@ -87,10 +87,15 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // This handles cases where relays don't index 'url' tags properly
       if (uniqueEvents.length === 0) {
         console.log('[useReadToRelayContent] No tag matches, trying client-side filter...');
+        console.log('[useReadToRelayContent] 📋 Bookmark URL:', url);
+        console.log('[useReadToRelayContent] 🔄 URL Variants Created:', uniqueUrls);
+
         const allArticles = await relayGroup.query([{
           kinds: [30023],
           limit: 500,  // Get more articles to improve match chances
         }], { signal });
+
+        console.log('[useReadToRelayContent] 📚 Total articles fetched from relays:', allArticles.length);
 
         // Helper to decode base64 safely
         const tryDecodeBase64 = (str: string): string | null => {
@@ -101,17 +106,18 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           }
         };
 
+        // Normalize tags for comparison (remove scheme and www, and strip trailing slashes)
+        const normalizeForMatch = (str: string) =>
+          str.replace(/^https?:\/\//, '')
+            .replace(/^www\./, '')
+            .replace(/\/$/, '');  // Remove trailing slash
+
         // Filter by checking if any tag contains our URL
         uniqueEvents = allArticles.filter(event => {
           const urlTag = event.tags.find(([name]) => name === 'url')?.[1] || '';
           const rTag = event.tags.find(([name]) => name === 'r')?.[1] || '';
           const dTag = event.tags.find(([name]) => name === 'd')?.[1] || '';
-
-          // Normalize tags for comparison (remove scheme and www, and strip trailing slashes)
-          const normalizeForMatch = (str: string) =>
-            str.replace(/^https?:\/\//, '')
-              .replace(/^www\./, '')
-              .replace(/\/$/, '');  // Remove trailing slash
+          const title = event.tags.find(([name]) => name === 'title')?.[1] || '';
 
           const normalizedUrlTag = normalizeForMatch(urlTag);
           const normalizedRTag = normalizeForMatch(rTag);
@@ -122,28 +128,62 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           const normalizedDecodedDTag = decodedDTag ? normalizeForMatch(decodedDTag) : '';
 
           // Check if any of these tags match our URL variants
+          let matchReason = '';
           const matched = uniqueUrls.some(variant => {
             const normalizedVariant = normalizeForMatch(variant);
 
             // For url tag and r tag, do exact match (they should contain clean URLs)
-            if (normalizedUrlTag && normalizedUrlTag === normalizedVariant) return true;
-            if (normalizedRTag && normalizedRTag === normalizedVariant) return true;
+            if (normalizedUrlTag && normalizedUrlTag === normalizedVariant) {
+              matchReason = `url tag exact match: "${normalizedUrlTag}" === "${normalizedVariant}"`;
+              return true;
+            }
+            if (normalizedRTag && normalizedRTag === normalizedVariant) {
+              matchReason = `r tag exact match: "${normalizedRTag}" === "${normalizedVariant}"`;
+              return true;
+            }
 
             // For d-tag, allow prefix match (to handle timestamp suffixes like "-1764004814")
-            if (normalizedDTag && normalizedDTag.startsWith(normalizedVariant + '-')) return true;
-            if (normalizedDTag && normalizedDTag === normalizedVariant) return true;
+            if (normalizedDTag && normalizedDTag.startsWith(normalizedVariant + '-')) {
+              matchReason = `d tag prefix match: "${normalizedDTag}" starts with "${normalizedVariant}-"`;
+              return true;
+            }
+            if (normalizedDTag && normalizedDTag === normalizedVariant) {
+              matchReason = `d tag exact match: "${normalizedDTag}" === "${normalizedVariant}"`;
+              return true;
+            }
 
             // Same for decoded d-tag
-            if (normalizedDecodedDTag && normalizedDecodedDTag.startsWith(normalizedVariant + '-')) return true;
-            if (normalizedDecodedDTag && normalizedDecodedDTag === normalizedVariant) return true;
+            if (normalizedDecodedDTag && normalizedDecodedDTag.startsWith(normalizedVariant + '-')) {
+              matchReason = `decoded d tag prefix match: "${normalizedDecodedDTag}" starts with "${normalizedVariant}-"`;
+              return true;
+            }
+            if (normalizedDecodedDTag && normalizedDecodedDTag === normalizedVariant) {
+              matchReason = `decoded d tag exact match: "${normalizedDecodedDTag}" === "${normalizedVariant}"`;
+              return true;
+            }
 
             return false;
           });
 
+          if (matched) {
+            console.log('✅ MATCH FOUND:', {
+              title,
+              matchReason,
+              articleTags: {
+                url: urlTag,
+                normalizedUrl: normalizedUrlTag,
+                r: rTag,
+                normalizedR: normalizedRTag,
+                d: dTag,
+                normalizedD: normalizedDTag,
+              },
+            });
+          }
+
           return matched;
         });
 
-        console.log('[useReadToRelayContent] Client-side filter found:', uniqueEvents.length);
+        console.log('[useReadToRelayContent] 🎯 Client-side filter found:', uniqueEvents.length, 'matches');
       }
 
       const events = uniqueEvents;
