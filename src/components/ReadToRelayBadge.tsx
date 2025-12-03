@@ -1,4 +1,4 @@
-import { FileText } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useReadToRelayContent } from '@/hooks/useReadToRelayContent';
 import { useAppContext } from '@/hooks/useAppContext';
@@ -9,8 +9,9 @@ interface ReadToRelayBadgeProps {
 }
 
 /**
- * Badge that shows when ReadToRelay saved copies of an article are available.
+ * Icon button that shows when ReadToRelay saved copies of an article are available.
  * Only queries relays when feature is enabled in settings.
+ * Matches the style of the adjacent code viewer icon.
  */
 export function ReadToRelayBadge({ url }: ReadToRelayBadgeProps) {
   const { config } = useAppContext();
@@ -52,16 +53,19 @@ export function ReadToRelayBadge({ url }: ReadToRelayBadgeProps) {
     navigate(`/article/${articles[0].event.id}`);
   };
 
+  const title = articles.length === 1
+    ? 'View saved copy (paywall-free)'
+    : `View ${articles.length} saved copies (paywall-free)`;
+
   return (
     <Button
       onClick={handleClick}
-      variant="outline"
-      size="sm"
-      className="gap-2 h-8"
-      title="View paywall-free version saved to Nostr"
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8"
+      title={title}
     >
-      <FileText className="h-3 w-3" />
-      {articles.length === 1 ? 'Saved Copy' : `${articles.length} Copies`}
+      <Save className="h-4 w-4 text-muted-foreground" />
     </Button>
   );
 }
