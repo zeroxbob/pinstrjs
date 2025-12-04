@@ -19,12 +19,32 @@ export function ArticlePage() {
   const navigate = useNavigate();
   const { nostr } = useNostr();
 
-  const { data: event, isLoading } = useQuery({
+  const { data: event, isLoading, error } = useQuery({
     queryKey: ['article', eventId],
     queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(5000)]);
-      const events = await nostr.query([{ ids: [eventId!] }], { signal });
-      return events[0] || null;
+      console.log('[ArticlePage] 🔍 Fetching event by ID:', eventId);
+
+      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(10000)]);  // Increased from 5s to 10s
+
+      try {
+        const events = await nostr.query([{ ids: [eventId!] }], { signal });
+        console.log('[ArticlePage] ✅ Query returned', events.length, 'events');
+
+        if (events.length === 0) {
+          console.warn('[ArticlePage] ⚠️ Event not found on relays. Event ID:', eventId);
+        } else {
+          console.log('[ArticlePage] 📄 Event found:', {
+            id: events[0].id.substring(0, 8),
+            kind: events[0].kind,
+            title: events[0].tags.find(t => t[0] === 'title')?.[1],
+          });
+        }
+
+        return events[0] || null;
+      } catch (err) {
+        console.error('[ArticlePage] ❌ Error fetching event:', err);
+        throw err;
+      }
     },
     enabled: !!eventId,
   });
