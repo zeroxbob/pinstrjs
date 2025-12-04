@@ -1,7 +1,6 @@
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import type { NostrEvent } from '@nostrify/nostrify';
-import { useAppContext } from '@/hooks/useAppContext';
 
 export interface ReadToRelayArticle {
   event: NostrEvent;
@@ -19,7 +18,6 @@ export interface ReadToRelayArticle {
  */
 export function useReadToRelayContent(url: string, enabled: boolean = true) {
   const { nostr } = useNostr();
-  const { config } = useAppContext();
 
   return useQuery({
     queryKey: ['readtorelay-content', url],
@@ -61,21 +59,9 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         ]
       });
 
-      // Query for NIP-23 long-form articles with BOTH 'r' tag and 'url' tag matching any URL variant
-      // ReadToRelay may use either tag depending on version
-      // Query user-configured relays (from settings) to maximize chance of finding content
-      const readRelays = config.relayMetadata.relays
-        .filter(r => r.read)  // Only use relays with read permission
-        .map(r => r.url);
-
-      // Fallback to default relays if user hasn't configured any read relays
-      const relayUrls = readRelays.length > 0 ? readRelays : [
-        'wss://relay.damus.io',
-        'wss://relay.ditto.pub',
-        'wss://relay.nostr.band',
-      ];
-
-      const relayGroup = nostr.group(relayUrls);
+      // Query for NIP-23 long-form articles
+      // The NPool (nostr) is already configured to route to user's read relays via reqRouter
+      // No need to manually create a relay group - just use nostr directly
 
       // Query for kind 30023 events (relays index by kind efficiently)
       // We can't rely on #url or #r tags (not indexed by most relays)
@@ -90,7 +76,8 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         console.log('[useReadToRelayContent] 🔍 Fetching kind 30023 events for client-side filtering...');
 
         // Fetch recent articles (relays efficiently filter by kind)
-        uniqueEvents = await relayGroup.query([{
+        // NPool automatically routes to user's configured read relays
+        uniqueEvents = await nostr.query([{
           kinds: [30023],
           limit: 500,  // Fetch enough articles to find matches
         }], { signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]) });
