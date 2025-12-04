@@ -58,10 +58,11 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
       },
     });
 
-    // Expose nostr instance to window in development for console debugging
+    // Expose nostrify instance to window in development for console debugging
+    // Note: window.nostr is reserved for NIP-07 browser extensions (nos2x, Alby, etc.)
     if (import.meta.env.DEV) {
-      (window as unknown as { nostr: NPool }).nostr = pool.current;
-      console.log('🔧 Development mode: window.nostr is available for console debugging');
+      (window as unknown as { nostrify: NPool }).nostrify = pool.current;
+      console.log('🔧 Development mode: window.nostrify is available for console debugging');
     }
   }
 
