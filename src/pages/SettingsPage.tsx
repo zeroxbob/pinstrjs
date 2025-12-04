@@ -76,7 +76,7 @@ export function SettingsPage() {
             <CardHeader>
               <CardTitle>ReadToRelay Integration</CardTitle>
               <CardDescription>
-                Show paywall-free versions of articles saved by the community
+                Show versions of articles saved as a nostr note by the community
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -94,7 +94,7 @@ export function SettingsPage() {
                 <p>
                   When enabled, Pinstr will query Nostr relays for articles that have been saved
                   by <a href="https://github.com/vcavallo/ReadToRelay" target="_blank" rel="noopener noreferrer" className="underline">ReadToRelay</a> users.
-                  This allows you to access paywall-free versions of bookmarked articles that others have already archived to Nostr.
+                  This allows you to access saved versions of bookmarked articles that others have already archived to Nostr.
                 </p>
                 <p className="text-xs">
                   <strong>Privacy:</strong> Queries are standard Nostr relay requests.

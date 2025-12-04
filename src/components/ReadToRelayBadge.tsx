@@ -54,8 +54,8 @@ export function ReadToRelayBadge({ url }: ReadToRelayBadgeProps) {
   };
 
   const title = articles.length === 1
-    ? 'View saved copy (paywall-free)'
-    : `View ${articles.length} saved copies (paywall-free)`;
+    ? 'View saved copy'
+    : `View ${articles.length} saved copies`;
 
   return (
     <Button
