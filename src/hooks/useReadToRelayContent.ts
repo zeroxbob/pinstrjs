@@ -1,6 +1,7 @@
 import { useNostr } from '@nostrify/react';
 import { useQuery } from '@tanstack/react-query';
 import type { NostrEvent } from '@nostrify/nostrify';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export interface ReadToRelayArticle {
   event: NostrEvent;
@@ -18,6 +19,7 @@ export interface ReadToRelayArticle {
  */
 export function useReadToRelayContent(url: string, enabled: boolean = true) {
   const { nostr } = useNostr();
+  const { config } = useAppContext();
 
   return useQuery({
     queryKey: ['readtorelay-content', url],
@@ -56,13 +58,19 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
 
       // Query for NIP-23 long-form articles with BOTH 'r' tag and 'url' tag matching any URL variant
       // ReadToRelay may use either tag depending on version
-      // Query ALL relays (not just the fastest) to maximize chance of finding content
-      const relayGroup = nostr.group([
+      // Query user-configured relays (from settings) to maximize chance of finding content
+      const readRelays = config.relayMetadata.relays
+        .filter(r => r.read)  // Only use relays with read permission
+        .map(r => r.url);
+
+      // Fallback to default relays if user hasn't configured any read relays
+      const relayUrls = readRelays.length > 0 ? readRelays : [
         'wss://relay.damus.io',
         'wss://relay.ditto.pub',
         'wss://relay.nostr.band',
-        'wss://relay.primal.net',
-      ]);
+      ];
+
+      const relayGroup = nostr.group(relayUrls);
 
       const [eventsWithRTag, eventsWithUrlTag] = await Promise.all([
         relayGroup.query([{
