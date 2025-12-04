@@ -57,6 +57,12 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
         return [...allRelays];
       },
     });
+
+    // Expose nostr instance to window in development for console debugging
+    if (import.meta.env.DEV) {
+      (window as unknown as { nostr: NPool }).nostr = pool.current;
+      console.log('🔧 Development mode: window.nostr is available for console debugging');
+    }
   }
 
   return (
