@@ -19,7 +19,7 @@ export function ArticlePage() {
   const navigate = useNavigate();
   const { nostr } = useNostr();
 
-  const { data: event, isLoading, error } = useQuery({
+  const { data: event, isLoading } = useQuery({
     queryKey: ['article', eventId],
     queryFn: async (c) => {
       console.log('[ArticlePage] 🔍 Fetching event by ID:', eventId);
