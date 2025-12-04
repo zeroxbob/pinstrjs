@@ -22,7 +22,9 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
   return useQuery({
     queryKey: ['readtorelay-content', url],
     queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
+      // Use React Query's abort signal for cancellation
+      // The query itself will have its own timeout (10s for large queries)
+      const signal = c.signal;
 
       // Normalize URL - try multiple variants to maximize matches
       // First, strip any trailing timestamp suffix (e.g., -1764792475)
