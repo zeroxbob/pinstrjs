@@ -33,12 +33,16 @@ export function DetailedDebugPage() {
       };
 
       // STEP 1: Generate URL variants
-      const normalizedUrl = url.replace(/^https?:\/\//, '');
+      // First, strip any trailing timestamp suffix (e.g., -1764792475)
+      const urlWithoutTimestamp = url.replace(/-\d{10,}$/, '');
+
+      const normalizedUrl = urlWithoutTimestamp.replace(/^https?:\/\//, '');
       const withoutWww = normalizedUrl.replace(/^www\./, '');
       const withWww = withoutWww.startsWith('www.') ? withoutWww : `www.${withoutWww}`;
 
       const urlVariants = [
-        url,
+        url,                           // Original with timestamp
+        urlWithoutTimestamp,           // Timestamp stripped
         `https://${normalizedUrl}`,
         `http://${normalizedUrl}`,
         normalizedUrl,
@@ -54,6 +58,8 @@ export function DetailedDebugPage() {
 
       debugResults.step1 = {
         originalUrl: url,
+        urlWithoutTimestamp,
+        timestampStripped: url !== urlWithoutTimestamp,
         normalizedUrl,
         withoutWww,
         withWww,

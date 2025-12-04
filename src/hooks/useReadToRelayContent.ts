@@ -27,12 +27,17 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
 
       // Normalize URL - try multiple variants to maximize matches
-      const normalizedUrl = url.replace(/^https?:\/\//, '');
+      // First, strip any trailing timestamp suffix (e.g., -1764792475)
+      // This handles cases where the bookmark URL has the timestamp appended
+      const urlWithoutTimestamp = url.replace(/-\d{10,}$/, '');
+
+      const normalizedUrl = urlWithoutTimestamp.replace(/^https?:\/\//, '');
       const withoutWww = normalizedUrl.replace(/^www\./, '');
       const withWww = withoutWww.startsWith('www.') ? withoutWww : `www.${withoutWww}`;
 
       const urlVariants = [
-        url,                              // Original URL as-is
+        url,                              // Original URL as-is (with timestamp if present)
+        urlWithoutTimestamp,              // URL with timestamp stripped
         `https://${normalizedUrl}`,       // With https://
         `http://${normalizedUrl}`,        // With http://
         normalizedUrl,                    // Without scheme
