@@ -69,6 +69,10 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
 
       try {
         console.log('[useReadToRelayContent] 🔍 Fetching kind 30023 events for client-side filtering...');
+        console.log('[useReadToRelayContent] 📡 Query filter:', { kinds: [30023], limit: 500 });
+        console.log('[useReadToRelayContent] ⏱️ Timeout: 10 seconds');
+
+        const queryStart = Date.now();
 
         // Fetch recent articles (relays efficiently filter by kind)
         // NPool automatically routes to user's configured read relays
@@ -77,9 +81,23 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
           limit: 500,  // Fetch enough articles to find matches
         }], { signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]) });
 
-        console.log('[useReadToRelayContent] ✅ Fetched', uniqueEvents.length, 'articles');
+        const queryDuration = Date.now() - queryStart;
+        console.log('[useReadToRelayContent] ✅ Fetched', uniqueEvents.length, 'articles in', queryDuration, 'ms');
+
+        if (uniqueEvents.length === 0) {
+          console.warn('[useReadToRelayContent] ⚠️ Query returned 0 articles! This might mean:');
+          console.warn('  1. No relays are configured with read permission');
+          console.warn('  2. The relays don\'t have any kind 30023 events');
+          console.warn('  3. The query timed out before relays could respond');
+          console.warn('  4. The NPool isn\'t routing the query correctly');
+        }
       } catch (error) {
         console.error('[useReadToRelayContent] ❌ Error fetching articles:', error);
+        console.error('[useReadToRelayContent] Error details:', {
+          name: (error as Error).name,
+          message: (error as Error).message,
+          stack: (error as Error).stack,
+        });
         return null;
       }
 
