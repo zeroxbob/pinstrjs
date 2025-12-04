@@ -50,14 +50,9 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // Remove duplicates
       const uniqueUrls = [...new Set(urlVariants)];
 
-      console.log('[useReadToRelayContent] Querying for:', {
-        originalUrl: url,
-        urlVariants: uniqueUrls,
-        filters: [
-          { kinds: [30023], '#r': uniqueUrls, limit: 10 },
-          { kinds: [30023], '#url': uniqueUrls, limit: 10 },
-        ]
-      });
+      console.log('[useReadToRelayContent] 🔍 Starting query for URL:', url);
+      console.log('[useReadToRelayContent] 📋 URL after timestamp strip:', urlWithoutTimestamp);
+      console.log('[useReadToRelayContent] 🔄 Created URL variants:', uniqueUrls);
 
       // Query for NIP-23 long-form articles
       // The NPool (nostr) is already configured to route to user's read relays via reqRouter
@@ -144,7 +139,12 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         })),
       });
 
-      if (events.length === 0) return null;
+      console.log(`[useReadToRelayContent] 🎯 Result: Found ${events.length} matching articles for URL: ${url}`);
+
+      if (events.length === 0) {
+        console.log('[useReadToRelayContent] ⚠️ No matches found for this URL');
+        return null;
+      }
 
       // Sort by created_at (newest first)
       events.sort((a, b) => b.created_at - a.created_at);
