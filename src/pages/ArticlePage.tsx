@@ -24,7 +24,7 @@ export function ArticlePage() {
     queryFn: async (c) => {
       console.log('[ArticlePage] 🔍 Fetching event by ID:', eventId);
 
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(30000)]);  // 30 seconds to match useReadToRelayContent
+      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(60000)]);  // 60 seconds to match useReadToRelayContent
 
       try {
         const events = await nostr.query([{ ids: [eventId!] }], { signal });

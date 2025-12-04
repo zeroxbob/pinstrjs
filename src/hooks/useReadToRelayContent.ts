@@ -72,7 +72,7 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       try {
         console.log('[useReadToRelayContent] 🔍 Fetching kind 30023 events for client-side filtering...');
         console.log('[useReadToRelayContent] 📡 Query filter:', { kinds: [30023], limit: 500 });
-        console.log('[useReadToRelayContent] ⏱️ Timeout: 30 seconds');
+        console.log('[useReadToRelayContent] ⏱️ Timeout: 60 seconds');
 
         const queryStart = Date.now();
 
@@ -81,7 +81,7 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         uniqueEvents = await nostr.query([{
           kinds: [30023],
           limit: 500,  // Fetch enough articles to find matches
-        }], { signal: AbortSignal.any([signal, AbortSignal.timeout(30000)]) });
+        }], { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
 
         const queryDuration = Date.now() - queryStart;
         console.log('[useReadToRelayContent] ✅ Fetched', uniqueEvents.length, 'articles in', queryDuration, 'ms');
