@@ -77,139 +77,72 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
 
       const relayGroup = nostr.group(relayUrls);
 
-      const [eventsWithRTag, eventsWithUrlTag] = await Promise.all([
-        relayGroup.query([{
-          kinds: [30023],  // NIP-23 long-form content
-          '#r': uniqueUrls,
-          limit: 10,
-        }], { signal }),
-        relayGroup.query([{
-          kinds: [30023],  // NIP-23 long-form content
-          '#url': uniqueUrls,
-          limit: 10,
-        }], { signal }),
-      ]);
+      // Query for kind 30023 events (relays index by kind efficiently)
+      // We can't rely on #url or #r tags (not indexed by most relays)
+      // The #d tag IS indexed, but contains timestamp suffixes, so we fetch a broader set
+      // and filter client-side for matches
+      console.log('[useReadToRelayContent] 📋 Bookmark URL:', url);
+      console.log('[useReadToRelayContent] 🔄 URL Variants Created:', uniqueUrls);
 
-      // Combine results and deduplicate by event ID
-      const allEvents = [...eventsWithRTag, ...eventsWithUrlTag];
-      let uniqueEvents = allEvents.filter((event, index, self) =>
-        index === self.findIndex((e) => e.id === event.id)
-      );
+      let uniqueEvents: NostrEvent[];
 
-      // If no matches found via tags, try querying ALL kind 30023 events and filter client-side
-      // This handles cases where relays don't index 'url' tags properly
-      if (uniqueEvents.length === 0) {
-        console.log('[useReadToRelayContent] No tag matches, trying client-side filter...');
-        console.log('[useReadToRelayContent] 📋 Bookmark URL:', url);
-        console.log('[useReadToRelayContent] 🔄 URL Variants Created:', uniqueUrls);
+      try {
+        console.log('[useReadToRelayContent] 🔍 Fetching kind 30023 events for client-side filtering...');
 
-        let allArticles;
-        try {
-          console.log('[useReadToRelayContent] 🔍 Starting query for all articles...');
-          allArticles = await relayGroup.query([{
-            kinds: [30023],
-            limit: 500,  // Get more articles to improve match chances
-          }], { signal });
-          console.log('[useReadToRelayContent] ✅ Query completed successfully');
-        } catch (error) {
-          console.error('[useReadToRelayContent] ❌ Error fetching all articles:', error);
-          console.error('[useReadToRelayContent] Error details:', {
-            name: error instanceof Error ? error.name : 'Unknown',
-            message: error instanceof Error ? error.message : String(error),
-          });
-          return null;  // Return null to indicate no articles found
-        }
+        // Fetch recent articles (relays efficiently filter by kind)
+        uniqueEvents = await relayGroup.query([{
+          kinds: [30023],
+          limit: 500,  // Fetch enough articles to find matches
+        }], { signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]) });
 
-        console.log('[useReadToRelayContent] 📚 Total articles fetched from relays:', allArticles.length);
-
-        // Helper to decode base64 safely
-        const tryDecodeBase64 = (str: string): string | null => {
-          try {
-            return atob(str);
-          } catch {
-            return null;
-          }
-        };
-
-        // Normalize tags for comparison (remove scheme and www, and strip trailing slashes)
-        const normalizeForMatch = (str: string) =>
-          str.replace(/^https?:\/\//, '')
-            .replace(/^www\./, '')
-            .replace(/\/$/, '');  // Remove trailing slash
-
-        // Filter by checking if any tag contains our URL
-        uniqueEvents = allArticles.filter(event => {
-          const urlTag = event.tags.find(([name]) => name === 'url')?.[1] || '';
-          const rTag = event.tags.find(([name]) => name === 'r')?.[1] || '';
-          const dTag = event.tags.find(([name]) => name === 'd')?.[1] || '';
-          const title = event.tags.find(([name]) => name === 'title')?.[1] || '';
-
-          const normalizedUrlTag = normalizeForMatch(urlTag);
-          const normalizedRTag = normalizeForMatch(rTag);
-          const normalizedDTag = normalizeForMatch(dTag);
-
-          // Try to decode d-tag as base64 (ReadToRelay might encode URLs in d-tag)
-          const decodedDTag = tryDecodeBase64(dTag);
-          const normalizedDecodedDTag = decodedDTag ? normalizeForMatch(decodedDTag) : '';
-
-          // Check if any of these tags match our URL variants
-          let matchReason = '';
-          const matched = uniqueUrls.some(variant => {
-            const normalizedVariant = normalizeForMatch(variant);
-
-            // For url tag and r tag, do exact match (they should contain clean URLs)
-            if (normalizedUrlTag && normalizedUrlTag === normalizedVariant) {
-              matchReason = `url tag exact match: "${normalizedUrlTag}" === "${normalizedVariant}"`;
-              return true;
-            }
-            if (normalizedRTag && normalizedRTag === normalizedVariant) {
-              matchReason = `r tag exact match: "${normalizedRTag}" === "${normalizedVariant}"`;
-              return true;
-            }
-
-            // For d-tag, allow prefix match (to handle timestamp suffixes like "-1764004814")
-            if (normalizedDTag && normalizedDTag.startsWith(normalizedVariant + '-')) {
-              matchReason = `d tag prefix match: "${normalizedDTag}" starts with "${normalizedVariant}-"`;
-              return true;
-            }
-            if (normalizedDTag && normalizedDTag === normalizedVariant) {
-              matchReason = `d tag exact match: "${normalizedDTag}" === "${normalizedVariant}"`;
-              return true;
-            }
-
-            // Same for decoded d-tag
-            if (normalizedDecodedDTag && normalizedDecodedDTag.startsWith(normalizedVariant + '-')) {
-              matchReason = `decoded d tag prefix match: "${normalizedDecodedDTag}" starts with "${normalizedVariant}-"`;
-              return true;
-            }
-            if (normalizedDecodedDTag && normalizedDecodedDTag === normalizedVariant) {
-              matchReason = `decoded d tag exact match: "${normalizedDecodedDTag}" === "${normalizedVariant}"`;
-              return true;
-            }
-
-            return false;
-          });
-
-          if (matched) {
-            console.log('✅ MATCH FOUND:', {
-              title,
-              matchReason,
-              articleTags: {
-                url: urlTag,
-                normalizedUrl: normalizedUrlTag,
-                r: rTag,
-                normalizedR: normalizedRTag,
-                d: dTag,
-                normalizedD: normalizedDTag,
-              },
-            });
-          }
-
-          return matched;
-        });
-
-        console.log('[useReadToRelayContent] 🎯 Client-side filter found:', uniqueEvents.length, 'matches');
+        console.log('[useReadToRelayContent] ✅ Fetched', uniqueEvents.length, 'articles');
+      } catch (error) {
+        console.error('[useReadToRelayContent] ❌ Error fetching articles:', error);
+        return null;
       }
+
+      // Filter client-side for URL matches
+      console.log('[useReadToRelayContent] 🔍 Filtering for URL matches...');
+
+      const normalizeForMatch = (str: string) =>
+        str.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
+
+      uniqueEvents = uniqueEvents.filter(event => {
+        const urlTag = event.tags.find(([name]) => name === 'url')?.[1] || '';
+        const rTag = event.tags.find(([name]) => name === 'r')?.[1] || '';
+        const dTag = event.tags.find(([name]) => name === 'd')?.[1] || '';
+
+        const normalizedUrlTag = normalizeForMatch(urlTag);
+        const normalizedRTag = normalizeForMatch(rTag);
+        const normalizedDTag = normalizeForMatch(dTag);
+
+        return uniqueUrls.some(variant => {
+          const normalizedVariant = normalizeForMatch(variant);
+
+          // Exact match for url and r tags
+          if (normalizedUrlTag && normalizedUrlTag === normalizedVariant) {
+            console.log('✅ MATCH (url tag):', event.tags.find(t => t[0] === 'title')?.[1]);
+            return true;
+          }
+          if (normalizedRTag && normalizedRTag === normalizedVariant) {
+            console.log('✅ MATCH (r tag):', event.tags.find(t => t[0] === 'title')?.[1]);
+            return true;
+          }
+
+          // Prefix match for d tag (handles timestamp suffixes like -1764004814)
+          if (normalizedDTag && (
+            normalizedDTag === normalizedVariant ||
+            normalizedDTag.startsWith(normalizedVariant + '-')
+          )) {
+            console.log('✅ MATCH (d tag):', event.tags.find(t => t[0] === 'title')?.[1]);
+            return true;
+          }
+
+          return false;
+        });
+      });
+
+      console.log('[useReadToRelayContent] 🎯 Found', uniqueEvents.length, 'matching articles');
 
       const events = uniqueEvents;
 
