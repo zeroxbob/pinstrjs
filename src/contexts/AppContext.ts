@@ -14,6 +14,8 @@ export interface AppConfig {
   theme: Theme;
   /** NIP-65 relay list metadata */
   relayMetadata: RelayMetadata;
+  /** Show ReadToRelay saved copies (opt-in feature) */
+  showReadToRelay?: boolean;
 }
 
 export interface AppContextType {
