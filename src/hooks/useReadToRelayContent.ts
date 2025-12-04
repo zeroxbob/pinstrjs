@@ -52,10 +52,6 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // Remove duplicates
       const uniqueUrls = [...new Set(urlVariants)];
 
-      console.log('[useReadToRelayContent] 🔍 Starting query for URL:', url);
-      console.log('[useReadToRelayContent] 📋 URL after timestamp strip:', urlWithoutTimestamp);
-      console.log('[useReadToRelayContent] 🔄 Created URL variants:', uniqueUrls);
-
       // Query for NIP-23 long-form articles
       // The NPool (nostr) is already configured to route to user's read relays via reqRouter
       // No need to manually create a relay group - just use nostr directly
@@ -64,47 +60,21 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // We can't rely on #url or #r tags (not indexed by most relays)
       // The #d tag IS indexed, but contains timestamp suffixes, so we fetch a broader set
       // and filter client-side for matches
-      console.log('[useReadToRelayContent] 📋 Bookmark URL:', url);
-      console.log('[useReadToRelayContent] 🔄 URL Variants Created:', uniqueUrls);
-
       let uniqueEvents: NostrEvent[];
 
       try {
-        console.log('[useReadToRelayContent] 🔍 Fetching kind 30023 events for client-side filtering...');
-        console.log('[useReadToRelayContent] 📡 Query filter:', { kinds: [30023], limit: 500 });
-        console.log('[useReadToRelayContent] ⏱️ Timeout: 60 seconds');
-
-        const queryStart = Date.now();
-
         // Fetch recent articles (relays efficiently filter by kind)
         // NPool automatically routes to user's configured read relays
         uniqueEvents = await nostr.query([{
           kinds: [30023],
           limit: 500,  // Fetch enough articles to find matches
         }], { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
-
-        const queryDuration = Date.now() - queryStart;
-        console.log('[useReadToRelayContent] ✅ Fetched', uniqueEvents.length, 'articles in', queryDuration, 'ms');
-
-        if (uniqueEvents.length === 0) {
-          console.warn('[useReadToRelayContent] ⚠️ Query returned 0 articles! This might mean:');
-          console.warn('  1. No relays are configured with read permission');
-          console.warn('  2. The relays don\'t have any kind 30023 events');
-          console.warn('  3. The query timed out before relays could respond');
-          console.warn('  4. The NPool isn\'t routing the query correctly');
-        }
       } catch (error) {
         console.error('[useReadToRelayContent] ❌ Error fetching articles:', error);
-        console.error('[useReadToRelayContent] Error details:', {
-          name: (error as Error).name,
-          message: (error as Error).message,
-          stack: (error as Error).stack,
-        });
         return null;
       }
 
       // Filter client-side for URL matches
-      console.log('[useReadToRelayContent] 🔍 Filtering for URL matches...');
 
       const normalizeForMatch = (str: string) =>
         str.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
@@ -123,11 +93,9 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
 
           // Exact match for url and r tags
           if (normalizedUrlTag && normalizedUrlTag === normalizedVariant) {
-            console.log('✅ MATCH (url tag):', event.tags.find(t => t[0] === 'title')?.[1]);
             return true;
           }
           if (normalizedRTag && normalizedRTag === normalizedVariant) {
-            console.log('✅ MATCH (r tag):', event.tags.find(t => t[0] === 'title')?.[1]);
             return true;
           }
 
@@ -136,7 +104,6 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
             normalizedDTag === normalizedVariant ||
             normalizedDTag.startsWith(normalizedVariant + '-')
           )) {
-            console.log('✅ MATCH (d tag):', event.tags.find(t => t[0] === 'title')?.[1]);
             return true;
           }
 
@@ -144,25 +111,9 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         });
       });
 
-      console.log('[useReadToRelayContent] 🎯 Found', uniqueEvents.length, 'matching articles');
-
       const events = uniqueEvents;
 
-      console.log('[useReadToRelayContent] Query results:', {
-        url,
-        eventsFound: events.length,
-        events: events.map(e => ({
-          id: e.id.substring(0, 8),
-          title: e.tags.find(([n]) => n === 'title')?.[1],
-          rTag: e.tags.find(([n]) => n === 'r')?.[1],
-          urlTag: e.tags.find(([n]) => n === 'url')?.[1],
-        })),
-      });
-
-      console.log(`[useReadToRelayContent] 🎯 Result: Found ${events.length} matching articles for URL: ${url}`);
-
       if (events.length === 0) {
-        console.log('[useReadToRelayContent] ⚠️ No matches found for this URL');
         return null;
       }
 

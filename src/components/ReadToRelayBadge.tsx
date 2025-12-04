@@ -20,18 +20,7 @@ export function ReadToRelayBadge({ url }: ReadToRelayBadgeProps) {
   // Check if feature is enabled (default: false for opt-in)
   const featureEnabled = config.showReadToRelay ?? false;
 
-  const { data: articles, isLoading, error } = useReadToRelayContent(url, featureEnabled);
-
-  // Debug logging (remove after testing)
-  if (featureEnabled) {
-    console.log('[ReadToRelayBadge]', {
-      url,
-      featureEnabled,
-      isLoading,
-      articlesCount: articles?.length ?? 0,
-      error,
-    });
-  }
+  const { data: articles, isLoading } = useReadToRelayContent(url, featureEnabled);
 
   // Don't show anything if feature is disabled
   if (!featureEnabled) {
