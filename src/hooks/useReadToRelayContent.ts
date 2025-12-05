@@ -25,23 +25,12 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // Use React Query's abort signal for cancellation
       const signal = c.signal;
 
-      // Normalize the URL for matching - check 'r' tag with multiple URL variants
+      // Normalize URLs by removing protocol, www, and trailing slash for comparison
       const normalizeForMatch = (str: string) =>
         str.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
-      // Create URL variants to handle different formats
-      const urlWithoutProtocol = url.replace(/^https?:\/\//, '');
-      const urlWithHttps = urlWithoutProtocol.startsWith('http') ? urlWithoutProtocol : `https://${urlWithoutProtocol}`;
-      const urlWithHttp = urlWithoutProtocol.startsWith('http') ? urlWithoutProtocol : `http://${urlWithoutProtocol}`;
-
-      const urlVariants = [
-        url,                    // Original (e.g., https://example.com/page or example.com/page)
-        urlWithHttps,           // With https://
-        urlWithHttp,            // With http://
-        urlWithoutProtocol,     // Without protocol
-      ];
-
-      const normalizedVariants = [...new Set(urlVariants.map(normalizeForMatch))];
+      // Normalize the bookmark URL once
+      const normalizedBookmarkUrl = normalizeForMatch(url);
 
       // Query for NIP-23 long-form articles
       // The NPool (nostr) is already configured to route to user's read relays via reqRouter
@@ -60,12 +49,13 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       }
 
       // Filter client-side for URL matches in 'r' tag only
+      // Compare normalized bookmark URL with normalized article r tag
       events = events.filter(event => {
         const rTag = event.tags.find(([name]) => name === 'r')?.[1];
         if (!rTag) return false;
 
         const normalizedRTag = normalizeForMatch(rTag);
-        return normalizedVariants.some(variant => variant === normalizedRTag);
+        return normalizedBookmarkUrl === normalizedRTag;
       });
 
       if (events.length === 0) {
