@@ -29,27 +29,62 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       const normalizeForMatch = (str: string) =>
         str.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
-      // Normalize the bookmark URL once
-      const normalizedBookmarkUrl = normalizeForMatch(url);
+      // Create URL variants for relay-side filtering
+      // Relays can efficiently filter by exact r tag match, so we provide common variants
+      const urlVariants = new Set<string>();
 
-      // Query for NIP-23 long-form articles
+      // Add the original URL as-is
+      urlVariants.add(url);
+
+      // Generate variants with/without protocol
+      const urlWithoutProtocol = url.replace(/^https?:\/\//, '');
+      urlVariants.add(urlWithoutProtocol);
+      urlVariants.add(`https://${urlWithoutProtocol}`);
+      urlVariants.add(`http://${urlWithoutProtocol}`);
+
+      // Generate variants with/without www
+      if (urlWithoutProtocol.startsWith('www.')) {
+        const withoutWww = urlWithoutProtocol.replace(/^www\./, '');
+        urlVariants.add(withoutWww);
+        urlVariants.add(`https://${withoutWww}`);
+        urlVariants.add(`http://${withoutWww}`);
+      } else {
+        urlVariants.add(`www.${urlWithoutProtocol}`);
+        urlVariants.add(`https://www.${urlWithoutProtocol}`);
+        urlVariants.add(`http://www.${urlWithoutProtocol}`);
+      }
+
+      // Generate variants with/without trailing slash
+      const additionalVariants = new Set<string>();
+      urlVariants.forEach(variant => {
+        if (variant.endsWith('/')) {
+          additionalVariants.add(variant.slice(0, -1));
+        } else {
+          additionalVariants.add(`${variant}/`);
+        }
+      });
+      additionalVariants.forEach(v => urlVariants.add(v));
+
+      const variantsArray = Array.from(urlVariants);
+
+      // Query for NIP-23 long-form articles with relay-side filtering by r tag
       // The NPool (nostr) is already configured to route to user's read relays via reqRouter
+      // Relays will only return articles with matching r tags (much more efficient!)
       let events: NostrEvent[];
 
       try {
-        // Fetch recent articles (relays efficiently filter by kind)
-        // NPool automatically routes to user's configured read relays
         events = await nostr.query([{
           kinds: [30023],
-          limit: 500,  // Fetch enough articles to find matches
+          '#r': variantsArray,  // Relay filters by r tag - only returns matches!
         }], { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
       } catch (error) {
         console.error('[useReadToRelayContent] ❌ Error fetching articles:', error);
         return null;
       }
 
-      // Filter client-side for URL matches in 'r' tag only
-      // Compare normalized bookmark URL with normalized article r tag
+      // Additional client-side normalization for edge cases
+      // (in case article r tag doesn't exactly match any variant)
+      const normalizedBookmarkUrl = normalizeForMatch(url);
       events = events.filter(event => {
         const rTag = event.tags.find(([name]) => name === 'r')?.[1];
         if (!rTag) return false;
