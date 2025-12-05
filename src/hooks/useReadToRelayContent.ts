@@ -25,12 +25,23 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // Use React Query's abort signal for cancellation
       const signal = c.signal;
 
-      // Normalize the URL for matching - only check 'r' tag
-      // Generate fewer variants since we're only matching against r tags
+      // Normalize the URL for matching - check 'r' tag with multiple URL variants
       const normalizeForMatch = (str: string) =>
         str.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
-      const normalizedUrl = normalizeForMatch(url);
+      // Create URL variants to handle different formats
+      const urlWithoutProtocol = url.replace(/^https?:\/\//, '');
+      const urlWithHttps = urlWithoutProtocol.startsWith('http') ? urlWithoutProtocol : `https://${urlWithoutProtocol}`;
+      const urlWithHttp = urlWithoutProtocol.startsWith('http') ? urlWithoutProtocol : `http://${urlWithoutProtocol}`;
+
+      const urlVariants = [
+        url,                    // Original (e.g., https://example.com/page or example.com/page)
+        urlWithHttps,           // With https://
+        urlWithHttp,            // With http://
+        urlWithoutProtocol,     // Without protocol
+      ];
+
+      const normalizedVariants = [...new Set(urlVariants.map(normalizeForMatch))];
 
       // Query for NIP-23 long-form articles
       // The NPool (nostr) is already configured to route to user's read relays via reqRouter
@@ -54,7 +65,7 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         if (!rTag) return false;
 
         const normalizedRTag = normalizeForMatch(rTag);
-        return normalizedRTag === normalizedUrl;
+        return normalizedVariants.some(variant => variant === normalizedRTag);
       });
 
       if (events.length === 0) {
