@@ -14,7 +14,7 @@ export interface ReadToRelayArticle {
 /**
  * Queries Nostr relays for ReadToRelay articles matching a URL.
  * ReadToRelay saves articles as NIP-23 long-form content (kind 30023)
- * with a 'url' tag (or 'r' tag) containing the original URL.
+ * with an 'r' tag containing the original URL.
  */
 export function useReadToRelayContent(url: string, enabled: boolean = true) {
   const { nostr } = useNostr();
@@ -23,49 +23,23 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
     queryKey: ['readtorelay-content', url],
     queryFn: async (c) => {
       // Use React Query's abort signal for cancellation
-      // The query itself will have its own timeout (10s for large queries)
       const signal = c.signal;
 
-      // Normalize URL - try multiple variants to maximize matches
-      // First, strip any trailing timestamp suffix (e.g., -1764792475)
-      // This handles cases where the bookmark URL has the timestamp appended
-      const urlWithoutTimestamp = url.replace(/-\d{10,}$/, '');
+      // Normalize the URL for matching - only check 'r' tag
+      // Generate fewer variants since we're only matching against r tags
+      const normalizeForMatch = (str: string) =>
+        str.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
-      const normalizedUrl = urlWithoutTimestamp.replace(/^https?:\/\//, '');
-      const withoutWww = normalizedUrl.replace(/^www\./, '');
-      const withWww = withoutWww.startsWith('www.') ? withoutWww : `www.${withoutWww}`;
-
-      const urlVariants = [
-        url,                              // Original URL as-is (with timestamp if present)
-        urlWithoutTimestamp,              // URL with timestamp stripped
-        `https://${normalizedUrl}`,       // With https://
-        `http://${normalizedUrl}`,        // With http://
-        normalizedUrl,                    // Without scheme
-        `https://${withoutWww}`,          // Without www + https
-        `http://${withoutWww}`,           // Without www + http
-        withoutWww,                       // Without www, without scheme
-        `https://${withWww}`,             // With www + https
-        `http://${withWww}`,              // With www + http
-        withWww,                          // With www, without scheme
-      ];
-
-      // Remove duplicates
-      const uniqueUrls = [...new Set(urlVariants)];
+      const normalizedUrl = normalizeForMatch(url);
 
       // Query for NIP-23 long-form articles
       // The NPool (nostr) is already configured to route to user's read relays via reqRouter
-      // No need to manually create a relay group - just use nostr directly
-
-      // Query for kind 30023 events (relays index by kind efficiently)
-      // We can't rely on #url or #r tags (not indexed by most relays)
-      // The #d tag IS indexed, but contains timestamp suffixes, so we fetch a broader set
-      // and filter client-side for matches
-      let uniqueEvents: NostrEvent[];
+      let events: NostrEvent[];
 
       try {
         // Fetch recent articles (relays efficiently filter by kind)
         // NPool automatically routes to user's configured read relays
-        uniqueEvents = await nostr.query([{
+        events = await nostr.query([{
           kinds: [30023],
           limit: 500,  // Fetch enough articles to find matches
         }], { signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]) });
@@ -74,44 +48,14 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
         return null;
       }
 
-      // Filter client-side for URL matches
+      // Filter client-side for URL matches in 'r' tag only
+      events = events.filter(event => {
+        const rTag = event.tags.find(([name]) => name === 'r')?.[1];
+        if (!rTag) return false;
 
-      const normalizeForMatch = (str: string) =>
-        str.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
-
-      uniqueEvents = uniqueEvents.filter(event => {
-        const urlTag = event.tags.find(([name]) => name === 'url')?.[1] || '';
-        const rTag = event.tags.find(([name]) => name === 'r')?.[1] || '';
-        const dTag = event.tags.find(([name]) => name === 'd')?.[1] || '';
-
-        const normalizedUrlTag = normalizeForMatch(urlTag);
         const normalizedRTag = normalizeForMatch(rTag);
-        const normalizedDTag = normalizeForMatch(dTag);
-
-        return uniqueUrls.some(variant => {
-          const normalizedVariant = normalizeForMatch(variant);
-
-          // Exact match for url and r tags
-          if (normalizedUrlTag && normalizedUrlTag === normalizedVariant) {
-            return true;
-          }
-          if (normalizedRTag && normalizedRTag === normalizedVariant) {
-            return true;
-          }
-
-          // Prefix match for d tag (handles timestamp suffixes like -1764004814)
-          if (normalizedDTag && (
-            normalizedDTag === normalizedVariant ||
-            normalizedDTag.startsWith(normalizedVariant + '-')
-          )) {
-            return true;
-          }
-
-          return false;
-        });
+        return normalizedRTag === normalizedUrl;
       });
-
-      const events = uniqueEvents;
 
       if (events.length === 0) {
         return null;
@@ -123,10 +67,8 @@ export function useReadToRelayContent(url: string, enabled: boolean = true) {
       // Transform events into article objects
       const articles: ReadToRelayArticle[] = events.map(event => {
         const title = event.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
-        // Check both 'url' tag (used by ReadToRelay) and 'r' tag (NIP-23 standard)
-        const originalUrl = event.tags.find(([name]) => name === 'url')?.[1]
-          || event.tags.find(([name]) => name === 'r')?.[1]
-          || url;
+        // Use 'r' tag for original URL (NIP-23 standard)
+        const originalUrl = event.tags.find(([name]) => name === 'r')?.[1] || url;
         const publishedAtTag = event.tags.find(([name]) => name === 'published_at')?.[1];
         const publishedAt = publishedAtTag ? parseInt(publishedAtTag) : event.created_at;
 
