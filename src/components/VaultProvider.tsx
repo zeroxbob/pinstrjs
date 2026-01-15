@@ -25,6 +25,7 @@ import {
   deleteVaultMetadata,
 } from "@/lib/vaultStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAppContext } from "@/hooks/useAppContext";
 
 /** Minimum passphrase length for security */
 const MIN_PASSPHRASE_LENGTH = 12;
@@ -51,6 +52,7 @@ interface VaultProviderProps {
 export function VaultProvider({ children }: VaultProviderProps) {
   const { user } = useCurrentUser();
   const userPubkey = user?.pubkey;
+  const { updateConfig } = useAppContext();
 
   const [state, setState] = useState<VaultState>({ status: "no_vault" });
   const [isLoading, setIsLoading] = useState(true);
@@ -130,12 +132,15 @@ export function VaultProvider({ children }: VaultProviderProps) {
         saveKeysToSession(userPubkey, keys);
         setState({ status: "unlocked", keys, vaultPubkey });
 
+        // Enable vault mode - bookmarks default to private
+        updateConfig((current) => ({ ...current, vaultEnabled: true }));
+
         return saltHex;
       } finally {
         setIsLoading(false);
       }
     },
-    [userPubkey, state.status]
+    [userPubkey, state.status, updateConfig]
   );
 
   // Unlock existing vault

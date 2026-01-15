@@ -1,20 +1,29 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useCreateBookmark } from '@/hooks/useCreateBookmark';
+import { useCreatePrivateBookmark } from '@/hooks/usePrivateBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useAppContext } from '@/hooks/useAppContext';
+import { useVault } from '@/hooks/useVault';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { LoginArea } from '@/components/auth/LoginArea';
-import { Bookmark, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Bookmark, CheckCircle2, AlertCircle, Loader2, Lock } from 'lucide-react';
 
 export function BookmarkletPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useCurrentUser();
+  const { config } = useAppContext();
+  const { state: vaultState } = useVault();
   const createBookmark = useCreateBookmark();
+  const createPrivateBookmark = useCreatePrivateBookmark();
+
+  const isVaultUnlocked = vaultState.status === 'unlocked';
 
   // Extension detection state
   const [isCheckingExtension, setIsCheckingExtension] = useState(true);
@@ -31,7 +40,16 @@ export function BookmarkletPage() {
   const [title, setTitle] = useState(decodeURIComponent(titleParam || ''));
   const [description, setDescription] = useState(decodeURIComponent(descriptionParam || ''));
   const [tags, setTags] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [wasPrivate, setWasPrivate] = useState(false);
+
+  // Default to private when vault is enabled and unlocked
+  useEffect(() => {
+    if (user && config.vaultEnabled && isVaultUnlocked) {
+      setIsPrivate(true);
+    }
+  }, [user, config.vaultEnabled, isVaultUnlocked]);
 
   // Check for Nostr browser extension with polling
   useEffect(() => {
@@ -71,13 +89,21 @@ export function BookmarkletPage() {
       return;
     }
 
+    const bookmarkData = {
+      url,
+      title,
+      description,
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+    };
+
     try {
-      await createBookmark.mutateAsync({
-        url,
-        title,
-        description,
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-      });
+      if (isPrivate && isVaultUnlocked) {
+        await createPrivateBookmark.mutateAsync(bookmarkData);
+        setWasPrivate(true);
+      } else {
+        await createBookmark.mutateAsync(bookmarkData);
+        setWasPrivate(false);
+      }
 
       setSuccess(true);
 
@@ -262,10 +288,12 @@ export function BookmarkletPage() {
             <CardContent className="pt-12 pb-12 text-center">
               <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Bookmark Saved!
+                {wasPrivate ? 'Private Bookmark Saved!' : 'Bookmark Saved!'}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Your bookmark has been successfully published to Nostr.
+                {wasPrivate
+                  ? 'Your encrypted bookmark has been saved.'
+                  : 'Your bookmark has been successfully published to Nostr.'}
               </p>
               {isPopup ? (
                 <p className="text-sm text-gray-500">This window will close automatically...</p>
@@ -287,7 +315,8 @@ export function BookmarkletPage() {
   }
 
   // Error state
-  if (createBookmark.isError) {
+  if (createBookmark.isError || createPrivateBookmark.isError) {
+    const errorMessage = createBookmark.error?.message || createPrivateBookmark.error?.message || 'An error occurred while saving your bookmark.';
     return (
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
         <div className="container max-w-2xl mx-auto">
@@ -298,12 +327,13 @@ export function BookmarkletPage() {
                 Failed to Save Bookmark
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {createBookmark.error?.message || 'An error occurred while saving your bookmark.'}
+                {errorMessage}
               </p>
               <div className="flex gap-4 justify-center">
                 <Button onClick={() => {
                   setSuccess(false);
                   createBookmark.reset();
+                  createPrivateBookmark.reset();
                 }}>
                   Try Again
                 </Button>
@@ -319,7 +349,7 @@ export function BookmarkletPage() {
   }
 
   // Submitting state (manual or auto)
-  if (createBookmark.isPending) {
+  if (createBookmark.isPending || createPrivateBookmark.isPending) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4">
         <div className="container max-w-2xl mx-auto">
@@ -409,9 +439,35 @@ export function BookmarkletPage() {
                 />
               </div>
 
+              {/* Private bookmark option */}
+              {vaultState.status !== 'no_vault' && (
+                <div className="flex items-center space-x-2 p-3 rounded-lg bg-muted/50">
+                  <Checkbox
+                    id="private"
+                    checked={isPrivate}
+                    onCheckedChange={(checked) => setIsPrivate(checked === true)}
+                    disabled={!isVaultUnlocked}
+                  />
+                  <div className="flex-1">
+                    <Label
+                      htmlFor="private"
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <Lock className="h-4 w-4" />
+                      Private bookmark
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {isVaultUnlocked
+                        ? 'Encrypted and not linked to your public identity'
+                        : 'Unlock your vault to create private bookmarks'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4">
                 <Button type="submit" className="flex-1" disabled={!url || !title}>
-                  Save Bookmark
+                  {isPrivate ? 'Save Private Bookmark' : 'Save Bookmark'}
                 </Button>
                 {!isPopup && (
                   <Button type="button" variant="outline" onClick={() => navigate(-1)}>
