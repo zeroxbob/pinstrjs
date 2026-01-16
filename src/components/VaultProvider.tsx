@@ -6,7 +6,7 @@ import {
   type VaultState,
 } from "@/contexts/VaultContext";
 import {
-  generateSalt,
+  deriveSaltFromPubkey,
   deriveVaultKeys,
   encryptContent,
   decryptContent,
@@ -19,7 +19,6 @@ import {
 } from "@/lib/vaultCrypto";
 import {
   hasVault,
-  readVaultMetadata,
   writeVaultMetadata,
   updateLastUnlocked,
   deleteVaultMetadata,
@@ -47,7 +46,8 @@ interface VaultProviderProps {
  * - Memory (React state) for immediate access
  * - sessionStorage for persistence across page refreshes (cleared on browser close)
  *
- * The salt is stored permanently in IndexedDB.
+ * The salt is derived deterministically from the user's npub, enabling
+ * vault recovery on any device with just the passphrase.
  */
 export function VaultProvider({ children }: VaultProviderProps) {
   const { user } = useCurrentUser();
@@ -113,17 +113,15 @@ export function VaultProvider({ children }: VaultProviderProps) {
 
       setIsLoading(true);
       try {
-        // Generate random salt
-        const salt = generateSalt();
-        const saltHex = saltToHex(salt);
+        // Derive salt deterministically from user's pubkey
+        const salt = deriveSaltFromPubkey(userPubkey);
 
         // Derive keys from passphrase + salt
         const keys = deriveVaultKeys(passphrase, salt);
         const vaultPubkey = getPublicKey(keys.signingKey);
 
-        // Store salt in IndexedDB
+        // Store metadata in IndexedDB (salt is derived, not stored)
         await writeVaultMetadata(userPubkey, {
-          saltHex,
           createdAt: Math.floor(Date.now() / 1000),
           lastUnlockedAt: Math.floor(Date.now() / 1000),
         });
@@ -135,7 +133,7 @@ export function VaultProvider({ children }: VaultProviderProps) {
         // Enable vault mode - bookmarks default to private
         updateConfig((current) => ({ ...current, vaultEnabled: true }));
 
-        return saltHex;
+        return vaultPubkey;
       } finally {
         setIsLoading(false);
       }
@@ -160,13 +158,8 @@ export function VaultProvider({ children }: VaultProviderProps) {
 
       setIsLoading(true);
       try {
-        // Read salt from IndexedDB
-        const metadata = await readVaultMetadata(userPubkey);
-        if (!metadata) {
-          throw new Error("Vault metadata not found");
-        }
-
-        const salt = hexToSalt(metadata.saltHex);
+        // Derive salt deterministically from user's pubkey
+        const salt = deriveSaltFromPubkey(userPubkey);
         const keys = deriveVaultKeys(passphrase, salt);
         const vaultPubkey = getPublicKey(keys.signingKey);
 
