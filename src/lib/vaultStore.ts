@@ -1,14 +1,15 @@
 /**
- * IndexedDB storage for private vault salt.
+ * IndexedDB storage for private vault metadata.
  *
- * The salt is stored per-user (keyed by their visible pubkey) and is safe
- * to store persistently - it provides no value without the passphrase.
+ * Stores metadata about the user's vault (when created, last unlocked).
+ * The salt is now derived deterministically from the user's npub,
+ * so it no longer needs to be stored.
  *
  * Storage structure:
  * - DB: nostr-vault-{hostname}
  * - Store: "vault"
  * - Key: user's visible pubkey
- * - Value: VaultMetadata (salt + timestamps)
+ * - Value: VaultMetadata (timestamps only)
  */
 
 import { openDB, type IDBPDatabase } from "idb";
@@ -25,11 +26,10 @@ const STORE_NAME = "vault";
 
 /**
  * Metadata stored for each user's vault.
- * The salt is stored as a hex string for easier serialization.
+ * Used to track vault existence and usage timestamps.
+ * The salt is derived from npub, so it's not stored here.
  */
 export interface VaultMetadata {
-  /** Random salt as hex string (32 bytes = 64 hex chars) */
-  saltHex: string;
   /** Unix timestamp when vault was created */
   createdAt: number;
   /** Unix timestamp of last successful unlock */
