@@ -6,13 +6,15 @@
  * quantum computers (unlike elliptic curve cryptography).
  *
  * Security model:
- * - Passphrase + salt → Argon2id → 64 bytes
+ * - Passphrase + deterministic salt (derived from npub) → Argon2id → 64 bytes
  * - First 32 bytes: Nostr signing key (for vault identity)
  * - Second 32 bytes: AES-256 encryption key (for content)
- * - Salt is stored locally; passphrase is never stored
+ * - Salt is derived from user's npub, enabling recovery on any device
+ * - Passphrase is never stored
  */
 
 import { argon2id } from "@noble/hashes/argon2.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 import { gcm } from "@noble/ciphers/aes.js";
 import { randomBytes } from "@noble/ciphers/utils.js";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
@@ -61,8 +63,31 @@ export interface EncryptedData {
 }
 
 /**
+ * Domain separator for salt derivation.
+ * Changing this would create a new, incompatible vault identity.
+ */
+const SALT_DOMAIN = "pinstr-vault-v1";
+
+/**
+ * Derives a deterministic salt from a user's public key.
+ * This enables vault recovery on any device with just npub + passphrase.
+ *
+ * @param pubkey - The user's Nostr public key (hex format)
+ * @returns 32-byte deterministic salt
+ *
+ * @security The salt is derived using SHA-256 with a domain separator.
+ * This ensures the salt is unique per user and per application.
+ * An attacker who knows the npub still cannot derive vault keys without
+ * the passphrase, and Argon2id makes brute-forcing expensive.
+ */
+export function deriveSaltFromPubkey(pubkey: string): Uint8Array {
+  const input = `${SALT_DOMAIN}:${pubkey}`;
+  return sha256(new TextEncoder().encode(input));
+}
+
+/**
  * Generates a cryptographically secure random salt.
- * Store this in IndexedDB; it's safe to store alongside encrypted data.
+ * @deprecated Use deriveSaltFromPubkey for deterministic, recoverable vaults.
  */
 export function generateSalt(): Uint8Array {
   return randomBytes(SALT_LENGTH);
@@ -72,11 +97,13 @@ export function generateSalt(): Uint8Array {
  * Derives vault keys from a passphrase and salt using Argon2id.
  *
  * @param passphrase - User's passphrase (should be strong)
- * @param salt - Random salt (32 bytes, stored in IndexedDB)
+ * @param salt - Salt derived from user's pubkey via deriveSaltFromPubkey()
  * @returns Signing key and encryption key
  *
- * @security The passphrase should never be stored. The salt can be stored
- * safely as it provides no value without the passphrase.
+ * @security The passphrase should never be stored. The salt is derived
+ * deterministically from the user's npub, enabling recovery on any device.
+ * Even with the npub (public) and salt (derivable), the passphrase is
+ * required to derive the vault keys. Argon2id makes brute-forcing expensive.
  */
 export function deriveVaultKeys(
   passphrase: string,

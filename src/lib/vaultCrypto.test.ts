@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   generateSalt,
+  deriveSaltFromPubkey,
   deriveVaultKeys,
   encryptContent,
   decryptContent,
@@ -23,6 +24,47 @@ describe("vaultCrypto", () => {
       const salt1 = generateSalt();
       const salt2 = generateSalt();
       expect(saltToHex(salt1)).not.toBe(saltToHex(salt2));
+    });
+  });
+
+  describe("deriveSaltFromPubkey", () => {
+    it("derives 32-byte salt from pubkey", () => {
+      const pubkey = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+      const salt = deriveSaltFromPubkey(pubkey);
+      expect(salt).toBeInstanceOf(Uint8Array);
+      expect(salt.length).toBe(32);
+    });
+
+    it("derives consistent salt for same pubkey", () => {
+      const pubkey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+      const salt1 = deriveSaltFromPubkey(pubkey);
+      const salt2 = deriveSaltFromPubkey(pubkey);
+      expect(saltToHex(salt1)).toBe(saltToHex(salt2));
+    });
+
+    it("derives different salts for different pubkeys", () => {
+      const pubkey1 = "1111111111111111111111111111111111111111111111111111111111111111";
+      const pubkey2 = "2222222222222222222222222222222222222222222222222222222222222222";
+      const salt1 = deriveSaltFromPubkey(pubkey1);
+      const salt2 = deriveSaltFromPubkey(pubkey2);
+      expect(saltToHex(salt1)).not.toBe(saltToHex(salt2));
+    });
+
+    it("enables deterministic vault key derivation", () => {
+      const pubkey = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+      const passphrase = "my-secret-passphrase";
+
+      // Simulate vault creation and later recovery
+      const salt1 = deriveSaltFromPubkey(pubkey);
+      const keys1 = deriveVaultKeys(passphrase, salt1);
+
+      // On a different device, derive again
+      const salt2 = deriveSaltFromPubkey(pubkey);
+      const keys2 = deriveVaultKeys(passphrase, salt2);
+
+      // Keys should be identical
+      expect(saltToHex(keys1.signingKey)).toBe(saltToHex(keys2.signingKey));
+      expect(saltToHex(keys1.encryptionKey)).toBe(saltToHex(keys2.encryptionKey));
     });
   });
 
