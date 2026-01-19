@@ -4,7 +4,7 @@ import { Bookmark as BookmarkIcon, Filter, Settings } from 'lucide-react';
 import { useUserBookmarks } from '@/hooks/useBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
-import { BookmarkDialog } from '@/components/BookmarkDialog';
+import { AddBookmarkDialog } from '@/components/AddBookmarkDialog';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -135,7 +135,7 @@ export default function BookmarksPage() {
                   </Select>
                 )}
               </div>
-              <BookmarkDialog />
+              <AddBookmarkDialog />
             </div>
 
             {/* Bookmarks Grid */}
@@ -201,7 +201,7 @@ export default function BookmarksPage() {
                       <p className="text-muted-foreground mb-6">
                         Start building your collection by adding your first bookmark.
                       </p>
-                      <BookmarkDialog />
+                      <AddBookmarkDialog />
                     </div>
                   </div>
                 </CardContent>

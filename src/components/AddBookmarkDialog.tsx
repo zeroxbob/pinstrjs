@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Bookmark, Tag as TagIcon, Calendar, Lock } from 'lucide-react';
+import { Plus, Bookmark, Tag as TagIcon, Lock } from 'lucide-react';
 import { useCreateBookmark, type CreateBookmarkData } from '@/hooks/useCreateBookmark';
 import { useCreatePrivateBookmark } from '@/hooks/usePrivateBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -28,7 +28,6 @@ export function AddBookmarkDialog() {
   const [description, setDescription] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [publishedAt, setPublishedAt] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
 
   const { user } = useCurrentUser();
@@ -93,7 +92,6 @@ export function AddBookmarkDialog() {
       title: title.trim() || undefined,
       description: description.trim() || undefined,
       tags: tags.length > 0 ? tags : undefined,
-      publishedAt: publishedAt ? new Date(publishedAt).getTime() / 1000 : undefined,
     };
 
     const resetForm = () => {
@@ -102,7 +100,6 @@ export function AddBookmarkDialog() {
       setDescription('');
       setTags([]);
       setTagInput('');
-      setPublishedAt('');
       setIsPrivate(false);
       setOpen(false);
     };
@@ -243,23 +240,6 @@ export function AddBookmarkDialog() {
             )}
             <p className="text-xs text-muted-foreground">
               Categorize your bookmark with topics (press Enter or click + to add)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="publishedAt" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Published Date
-            </Label>
-            <Input
-              id="publishedAt"
-              type="date"
-              value={publishedAt}
-              onChange={(e) => setPublishedAt(e.target.value)}
-              disabled={isPending}
-            />
-            <p className="text-xs text-muted-foreground">
-              Optional: When was this content originally published?
             </p>
           </div>
 
