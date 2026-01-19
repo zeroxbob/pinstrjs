@@ -22,11 +22,6 @@ import type { CreateBookmarkData } from "./useCreateBookmark";
 const PRIVATE_BOOKMARK_KIND = 39701;
 
 /**
- * Marker tag to identify encrypted private bookmarks
- */
-const ENCRYPTED_TAG = ["encrypted", "aes-256-gcm"];
-
-/**
  * Structure of encrypted bookmark content
  */
 interface EncryptedBookmarkContent {
@@ -38,15 +33,11 @@ interface EncryptedBookmarkContent {
 }
 
 /**
- * Extracts the URL without the scheme for the d-tag
+ * Generates a random identifier for the d-tag.
+ * Using random IDs prevents any correlation between bookmarks and URLs.
  */
-function extractIdentifier(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.host + urlObj.pathname + urlObj.search + urlObj.hash;
-  } catch {
-    return url.replace(/^https?:\/\//, "");
-  }
+function generateRandomId(): string {
+  return crypto.randomUUID();
 }
 
 /**
@@ -106,22 +97,19 @@ export function usePrivateBookmarks() {
         { signal }
       );
 
-      // Filter to only encrypted events and decrypt them
+      // Decrypt all events from the vault pubkey
       const bookmarks: Bookmark[] = [];
 
       for (const event of events) {
-        // Check for encrypted tag
-        const hasEncryptedTag = event.tags.some(
-          ([name, value]) => name === "encrypted" && value === "aes-256-gcm"
-        );
-
-        if (!hasEncryptedTag) continue;
-
         try {
           const decryptedJson = decrypt(event.content);
           const decryptedContent = JSON.parse(
             decryptedJson
           ) as EncryptedBookmarkContent;
+
+          // Skip "deleted" bookmarks (empty URL)
+          if (!decryptedContent.url) continue;
+
           bookmarks.push(transformPrivateBookmark(event, decryptedContent));
         } catch (error) {
           // Skip events that fail to decrypt (might be corrupted or wrong key)
@@ -141,62 +129,19 @@ export function usePrivateBookmarks() {
 }
 
 /**
- * Hook to fetch a single private bookmark by URL identifier.
+ * Hook to fetch a single private bookmark by URL.
+ * Since d-tags are random, we must fetch all bookmarks and find by URL.
  */
-export function usePrivateBookmark(identifier: string) {
-  const { nostr } = useNostr();
-  const { state, decrypt } = useVault();
-  const vaultPubkey = useVaultPubkey();
-  const isUnlocked = useIsVaultUnlocked();
+export function usePrivateBookmarkByUrl(url: string) {
+  const { data: bookmarks, isLoading, error } = usePrivateBookmarks();
 
-  return useQuery({
-    queryKey: ["privateBookmark", vaultPubkey, identifier],
-    queryFn: async (c) => {
-      if (!vaultPubkey || state.status !== "unlocked") {
-        return null;
-      }
+  const bookmark = bookmarks?.find((b) => b.url === url) ?? null;
 
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
-
-      const events = await nostr.query(
-        [
-          {
-            kinds: [PRIVATE_BOOKMARK_KIND],
-            authors: [vaultPubkey],
-            "#d": [identifier],
-            limit: 1,
-          },
-        ],
-        { signal }
-      );
-
-      if (events.length === 0) {
-        return null;
-      }
-
-      const event = events[0];
-
-      // Check for encrypted tag
-      const hasEncryptedTag = event.tags.some(
-        ([name, value]) => name === "encrypted" && value === "aes-256-gcm"
-      );
-
-      if (!hasEncryptedTag) {
-        return null;
-      }
-
-      try {
-        const decryptedJson = decrypt(event.content);
-        const decryptedContent = JSON.parse(
-          decryptedJson
-        ) as EncryptedBookmarkContent;
-        return transformPrivateBookmark(event, decryptedContent);
-      } catch {
-        return null;
-      }
-    },
-    enabled: isUnlocked && !!vaultPubkey && !!identifier,
-  });
+  return {
+    data: bookmark,
+    isLoading,
+    error,
+  };
 }
 
 /**
@@ -225,8 +170,8 @@ export function useCreatePrivateBookmark() {
         fullUrl = `https://${fullUrl}`;
       }
 
-      // Extract identifier for d-tag
-      const identifier = extractIdentifier(fullUrl);
+      // Generate random d-tag (no correlation to URL possible)
+      const identifier = generateRandomId();
 
       // Create content object to encrypt
       const contentToEncrypt: EncryptedBookmarkContent = {
@@ -240,11 +185,8 @@ export function useCreatePrivateBookmark() {
       // Encrypt the content
       const encryptedContent = encrypt(JSON.stringify(contentToEncrypt));
 
-      // Build tags array
-      const tags: string[][] = [
-        ["d", identifier],
-        ENCRYPTED_TAG,
-      ];
+      // Only d-tag with hashed identifier - no metadata leakage
+      const tags: string[][] = [["d", identifier]];
 
       // Create the event template
       const eventTemplate: EventTemplate = {
@@ -271,6 +213,9 @@ export function useCreatePrivateBookmark() {
 /**
  * Hook to delete a private bookmark.
  * Publishes an empty encrypted event with the same d-tag.
+ *
+ * Since d-tags are random, you must provide the d-tag directly.
+ * Get it from the bookmark's event tags: event.tags.find(t => t[0] === 'd')?.[1]
  */
 export function useDeletePrivateBookmark() {
   const { nostr } = useNostr();
@@ -278,9 +223,13 @@ export function useDeletePrivateBookmark() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (identifier: string) => {
+    mutationFn: async (dTag: string) => {
       if (state.status !== "unlocked") {
         throw new Error("Vault must be unlocked to delete private bookmarks");
+      }
+
+      if (!dTag) {
+        throw new Error("d-tag is required to delete a bookmark");
       }
 
       // Create empty encrypted content to mark as deleted
@@ -293,7 +242,7 @@ export function useDeletePrivateBookmark() {
       const eventTemplate: EventTemplate = {
         kind: PRIVATE_BOOKMARK_KIND,
         content: encryptedContent,
-        tags: [["d", identifier], ENCRYPTED_TAG],
+        tags: [["d", dTag]],
         created_at: Math.floor(Date.now() / 1000),
       };
 
