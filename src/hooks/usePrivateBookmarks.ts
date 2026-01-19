@@ -64,6 +64,7 @@ function transformPrivateBookmark(
     publishedAt: decryptedContent.publishedAt,
     createdAt: event.created_at,
     author: event.pubkey, // This is the vault pubkey
+    isPrivate: true,
   };
 }
 

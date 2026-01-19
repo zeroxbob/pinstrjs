@@ -22,6 +22,8 @@ export interface Bookmark {
   publishedAt?: number;
   createdAt: number;
   author: string;
+  /** Whether this is a private (encrypted) bookmark */
+  isPrivate?: boolean;
 }
 
 /**

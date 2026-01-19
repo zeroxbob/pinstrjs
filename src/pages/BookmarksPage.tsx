@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bookmark as BookmarkIcon, Filter, Settings } from 'lucide-react';
 import { useUserBookmarks } from '@/hooks/useBookmarks';
+import { usePrivateBookmarks } from '@/hooks/usePrivateBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
 import { AddBookmarkDialog } from '@/components/AddBookmarkDialog';
@@ -21,9 +22,21 @@ import {
 export default function BookmarksPage() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { data: bookmarks, isLoading } = useUserBookmarks(user?.pubkey);
+  const { data: publicBookmarks, isLoading: isLoadingPublic } = useUserBookmarks(user?.pubkey);
+  const { data: privateBookmarks, isLoading: isLoadingPrivate } = usePrivateBookmarks();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('all');
+
+  // Merge public and private bookmarks, sorted by creation date (newest first)
+  const bookmarks = useMemo(() => {
+    const all = [
+      ...(publicBookmarks ?? []),
+      ...(privateBookmarks ?? []),
+    ];
+    return all.sort((a, b) => b.createdAt - a.createdAt);
+  }, [publicBookmarks, privateBookmarks]);
+
+  const isLoading = isLoadingPublic || isLoadingPrivate;
 
   // Extract all unique tags from bookmarks
   const allTags = Array.from(
