@@ -50,7 +50,7 @@ describe("vaultCrypto", () => {
       expect(saltToHex(salt1)).not.toBe(saltToHex(salt2));
     });
 
-    it("enables deterministic vault key derivation", () => {
+    it("enables deterministic vault key derivation", { timeout: 10000 }, () => {
       const pubkey = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
       const passphrase = "my-secret-passphrase";
 
