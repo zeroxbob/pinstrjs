@@ -8,7 +8,9 @@
     "build": "npm i --silent && vite build -l error && cp dist/index.html dist/404.html && echo 'Project built successfully!'",
     "test": "npm i --silent && tsc --noEmit && eslint && vitest run --reporter=dot --silent && vite build -l error && cp dist/index.html dist/404.html && echo 'All tests passed!'",
     "deploy": "npm run build && npx -y nostr-deploy-cli deploy --skip-setup",
-    "generate-favicon": "node scripts/generate-favicon.js"
+    "generate-favicon": "node scripts/generate-favicon.js",
+    "ext:build": "vite build -c vite.extension.config.ts && node extension/scripts/copy-static.js",
+    "ext:icons": "node extension/scripts/generate-icons.js"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.6",
@@ -81,6 +83,7 @@
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "@types/chrome": "^0.1.35",
     "@types/node": "^22.5.5",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.1",
