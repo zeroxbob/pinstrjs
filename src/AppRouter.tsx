@@ -10,6 +10,7 @@ import { ArticlePage } from "./pages/ArticlePage";
 import { DebugReadToRelayPage } from "./pages/DebugReadToRelayPage";
 import { DetailedDebugPage } from "./pages/DetailedDebugPage";
 import { NIP19Page } from "./pages/NIP19Page";
+import TestPrivateBookmarkPage from "./pages/TestPrivateBookmarkPage";
 import NotFound from "./pages/NotFound";
 
 export function AppRouter() {
@@ -25,6 +26,7 @@ export function AppRouter() {
         <Route path="/article/:eventId" element={<ArticlePage />} />
         <Route path="/debug-readtorelay" element={<DebugReadToRelayPage />} />
         <Route path="/detailed-debug" element={<DetailedDebugPage />} />
+        <Route path="/test_private_bookmark" element={<TestPrivateBookmarkPage />} />
         {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
         <Route path="/:nip19" element={<NIP19Page />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
