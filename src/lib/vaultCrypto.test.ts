@@ -12,7 +12,9 @@ import {
   clearKeys,
 } from "./vaultCrypto";
 
-describe("vaultCrypto", () => {
+// Argon2id is intentionally slow for security. On CI runners, key derivation
+// can take several seconds, so we use a generous timeout for all tests.
+describe("vaultCrypto", { timeout: 10000 }, () => {
   describe("generateSalt", () => {
     it("generates 32-byte salt", () => {
       const salt = generateSalt();
@@ -50,7 +52,7 @@ describe("vaultCrypto", () => {
       expect(saltToHex(salt1)).not.toBe(saltToHex(salt2));
     });
 
-    it("enables deterministic vault key derivation", { timeout: 10000 }, () => {
+    it("enables deterministic vault key derivation", () => {
       const pubkey = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
       const passphrase = "my-secret-passphrase";
 
@@ -152,7 +154,7 @@ describe("vaultCrypto", () => {
     it("handles unicode content", () => {
       const salt = generateSalt();
       const keys = deriveVaultKeys("unicode-test", salt);
-      const plaintext = "Hello \ud83d\udc4b \u4e16\u754c \ud83c\udf0d \u0645\u0631\u062d\u0628\u0627";
+      const plaintext = "Hello 👋 世界 🌍 مرحبا";
 
       const encrypted = encryptContent(plaintext, keys.encryptionKey);
       const decrypted = decryptContent(encrypted, keys.encryptionKey);
