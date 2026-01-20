@@ -6,9 +6,12 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAppContext } from '@/hooks/useAppContext';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { VaultStatusIndicator } from '@/components/vault';
 
 export function SettingsPage() {
   const { config, updateConfig } = useAppContext();
+  const { user } = useCurrentUser();
 
   const handleReadToRelayToggle = (checked: boolean) => {
     updateConfig((current) => ({
@@ -55,6 +58,36 @@ export function SettingsPage() {
           </Card>
 
           <Separator />
+
+          {/* Private Vault Section */}
+          {user && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Private Vault</CardTitle>
+                  <CardDescription>
+                    Create encrypted bookmarks that are protected with a separate passphrase.
+                    Private bookmarks are quantum-resistant and not linked to your public identity.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <VaultStatusIndicator showLabel size="default" />
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p>
+                      Private bookmarks use AES-256 encryption with a key derived from your passphrase.
+                      They are signed by a separate keypair, so they cannot be linked to your Nostr identity.
+                    </p>
+                    <p className="text-xs">
+                      <strong>Important:</strong> Your passphrase is never stored. If you forget it,
+                      your private bookmarks cannot be recovered.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+            </>
+          )}
 
           {/* Relay Management Section */}
           <Card>

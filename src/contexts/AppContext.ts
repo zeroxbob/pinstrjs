@@ -16,6 +16,8 @@ export interface AppConfig {
   relayMetadata: RelayMetadata;
   /** Show ReadToRelay saved copies (opt-in feature) */
   showReadToRelay?: boolean;
+  /** Whether private vault is enabled (bookmarks default to private) */
+  vaultEnabled?: boolean;
 }
 
 export interface AppContextType {

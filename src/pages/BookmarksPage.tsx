@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bookmark as BookmarkIcon, Filter, Settings } from 'lucide-react';
 import { useUserBookmarks } from '@/hooks/useBookmarks';
+import { usePrivateBookmarks } from '@/hooks/usePrivateBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
-import { BookmarkDialog } from '@/components/BookmarkDialog';
+import { AddBookmarkDialog } from '@/components/AddBookmarkDialog';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,21 @@ import {
 export default function BookmarksPage() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { data: bookmarks, isLoading } = useUserBookmarks(user?.pubkey);
+  const { data: publicBookmarks, isLoading: isLoadingPublic } = useUserBookmarks(user?.pubkey);
+  const { data: privateBookmarks, isLoading: isLoadingPrivate } = usePrivateBookmarks();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('all');
+
+  // Merge public and private bookmarks, sorted by creation date (newest first)
+  const bookmarks = useMemo(() => {
+    const all = [
+      ...(publicBookmarks ?? []),
+      ...(privateBookmarks ?? []),
+    ];
+    return all.sort((a, b) => b.createdAt - a.createdAt);
+  }, [publicBookmarks, privateBookmarks]);
+
+  const isLoading = isLoadingPublic || isLoadingPrivate;
 
   // Extract all unique tags from bookmarks
   const allTags = Array.from(
@@ -135,7 +148,7 @@ export default function BookmarksPage() {
                   </Select>
                 )}
               </div>
-              <BookmarkDialog />
+              <AddBookmarkDialog />
             </div>
 
             {/* Bookmarks Grid */}
@@ -201,7 +214,7 @@ export default function BookmarksPage() {
                       <p className="text-muted-foreground mb-6">
                         Start building your collection by adding your first bookmark.
                       </p>
-                      <BookmarkDialog />
+                      <AddBookmarkDialog />
                     </div>
                   </div>
                 </CardContent>

@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { Plus, Bookmark, Tag as TagIcon, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Bookmark, Tag as TagIcon, Lock } from 'lucide-react';
 import { useCreateBookmark, type CreateBookmarkData } from '@/hooks/useCreateBookmark';
+import { useCreatePrivateBookmark } from '@/hooks/usePrivateBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
+import { useAppContext } from '@/hooks/useAppContext';
+import { useVault } from '@/hooks/useVault';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function AddBookmarkDialog() {
   const [open, setOpen] = useState(false);
@@ -24,11 +28,24 @@ export function AddBookmarkDialog() {
   const [description, setDescription] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [publishedAt, setPublishedAt] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const { user } = useCurrentUser();
-  const { mutate: createBookmark, isPending } = useCreateBookmark();
+  const { config } = useAppContext();
+  const { state: vaultState } = useVault();
+  const { mutate: createBookmark, isPending: isCreatingPublic } = useCreateBookmark();
+  const { mutate: createPrivateBookmark, isPending: isCreatingPrivate } = useCreatePrivateBookmark();
   const { toast } = useToast();
+
+  const isVaultUnlocked = vaultState.status === 'unlocked';
+  const isPending = isCreatingPublic || isCreatingPrivate;
+
+  // Default to private when vault is enabled and unlocked
+  useEffect(() => {
+    if (open && config.vaultEnabled && isVaultUnlocked) {
+      setIsPrivate(true);
+    }
+  }, [open, config.vaultEnabled, isVaultUnlocked]);
 
   const handleAddTag = () => {
     const trimmedTag = tagInput.trim().toLowerCase();
@@ -61,37 +78,55 @@ export function AddBookmarkDialog() {
       return;
     }
 
+    if (isPrivate && !isVaultUnlocked) {
+      toast({
+        title: 'Error',
+        description: 'Please unlock your vault first to create private bookmarks.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const data: CreateBookmarkData = {
       url: url.trim(),
       title: title.trim() || undefined,
       description: description.trim() || undefined,
       tags: tags.length > 0 ? tags : undefined,
-      publishedAt: publishedAt ? new Date(publishedAt).getTime() / 1000 : undefined,
     };
 
-    createBookmark(data, {
-      onSuccess: () => {
-        toast({
-          title: 'Bookmark created',
-          description: 'Your bookmark has been saved to Nostr.',
-        });
-        // Reset form
-        setUrl('');
-        setTitle('');
-        setDescription('');
-        setTags([]);
-        setTagInput('');
-        setPublishedAt('');
-        setOpen(false);
-      },
-      onError: (error) => {
-        toast({
-          title: 'Error',
-          description: error instanceof Error ? error.message : 'Failed to create bookmark',
-          variant: 'destructive',
-        });
-      },
-    });
+    const resetForm = () => {
+      setUrl('');
+      setTitle('');
+      setDescription('');
+      setTags([]);
+      setTagInput('');
+      setIsPrivate(false);
+      setOpen(false);
+    };
+
+    const onSuccess = () => {
+      toast({
+        title: isPrivate ? 'Private bookmark created' : 'Bookmark created',
+        description: isPrivate
+          ? 'Your encrypted bookmark has been saved.'
+          : 'Your bookmark has been saved to Nostr.',
+      });
+      resetForm();
+    };
+
+    const onError = (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to create bookmark',
+        variant: 'destructive',
+      });
+    };
+
+    if (isPrivate) {
+      createPrivateBookmark(data, { onSuccess, onError });
+    } else {
+      createBookmark(data, { onSuccess, onError });
+    }
   };
 
   if (!user) {
@@ -208,22 +243,31 @@ export function AddBookmarkDialog() {
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="publishedAt" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Published Date
-            </Label>
-            <Input
-              id="publishedAt"
-              type="date"
-              value={publishedAt}
-              onChange={(e) => setPublishedAt(e.target.value)}
-              disabled={isPending}
-            />
-            <p className="text-xs text-muted-foreground">
-              Optional: When was this content originally published?
-            </p>
-          </div>
+          {/* Private bookmark option - only shown when vault exists */}
+          {vaultState.status !== 'no_vault' && (
+            <div className="flex items-center space-x-2 p-3 rounded-lg bg-muted/50">
+              <Checkbox
+                id="private"
+                checked={isPrivate}
+                onCheckedChange={(checked) => setIsPrivate(checked === true)}
+                disabled={isPending || !isVaultUnlocked}
+              />
+              <div className="flex-1">
+                <Label
+                  htmlFor="private"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Lock className="h-4 w-4" />
+                  Private bookmark
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {isVaultUnlocked
+                    ? 'Encrypted and not linked to your public identity'
+                    : 'Unlock your vault to create private bookmarks'}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button
@@ -235,7 +279,7 @@ export function AddBookmarkDialog() {
               Cancel
             </Button>
             <Button type="submit" disabled={isPending || !url.trim()}>
-              {isPending ? 'Saving...' : 'Save Bookmark'}
+              {isPending ? 'Saving...' : isPrivate ? 'Save Private Bookmark' : 'Save Bookmark'}
             </Button>
           </div>
         </form>

@@ -4,7 +4,7 @@ import { Bookmark, Loader2, AlertCircle, ArrowRight, Settings } from 'lucide-rea
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
-import { BookmarkDialog } from '@/components/BookmarkDialog';
+import { AddBookmarkDialog } from '@/components/AddBookmarkDialog';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,7 @@ const Index = () => {
             </Link>
 
             <div className="flex items-center gap-4">
-              {user && <BookmarkDialog />}
+              {user && <AddBookmarkDialog />}
               <Button
                 variant="outline"
                 onClick={() => navigate('/install-bookmarklet')}
