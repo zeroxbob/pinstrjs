@@ -1,0 +1,1 @@
+chrome.runtime.onMessageExternal.addListener((e,o,r)=>{if(e.type==="NIP07_LOGIN_SUCCESS"&&e.pubkey)return chrome.storage.local.set({pendingLogin:{pubkey:e.pubkey,timestamp:Date.now()}}).then(()=>{r({success:!0})}).catch(t=>{console.error("Failed to store login:",t),r({success:!1,error:"Failed to store login"})}),!0});

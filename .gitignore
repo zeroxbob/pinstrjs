@@ -12,6 +12,9 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Allow extension dist folder for easy installation
+!extension/dist
 .ai/
 yarn.lock
 
