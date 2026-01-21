@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useNostrLogin } from "@nostrify/react/login";
 import {
   deriveSaltFromPubkey,
   deriveVaultKeys,
@@ -46,52 +47,57 @@ interface ExtensionVaultProviderProps {
 export const ExtensionVaultProvider: React.FC<ExtensionVaultProviderProps> = ({
   children,
 }) => {
-  const [userPubkey, setUserPubkey] = useState<string | null>(null);
+  const { logins } = useNostrLogin();
   const [state, setState] = useState<VaultState>({
     status: "no_vault",
     vaultPubkey: null,
     keys: null,
   });
 
-  // Check for NIP-07 signer and get user pubkey
-  useEffect(() => {
-    const checkSigner = async () => {
-      if (typeof window !== "undefined" && window.nostr) {
-        try {
-          const pubkey = await window.nostr.getPublicKey();
-          setUserPubkey(pubkey);
+  // Get user pubkey from login
+  const login = logins[0];
+  const userPubkey = login?.pubkey ?? null;
 
-          // Check if vault exists in chrome.storage.local
-          const result = await chrome.storage.local.get(["vaultPubkey"]);
-          if (result.vaultPubkey) {
-            // Check if vault is unlocked in session storage
-            const session = await chrome.storage.session.get(["vaultKeys"]);
-            if (session.vaultKeys) {
-              // Restore keys from session
-              const keys: VaultKeys = {
-                signingKey: new Uint8Array(session.vaultKeys.signingKey),
-                encryptionKey: new Uint8Array(session.vaultKeys.encryptionKey),
-              };
-              setState({
-                status: "unlocked",
-                vaultPubkey: result.vaultPubkey,
-                keys,
-              });
-            } else {
-              setState({
-                status: "locked",
-                vaultPubkey: result.vaultPubkey,
-                keys: null,
-              });
-            }
+  // Check vault status when user changes
+  useEffect(() => {
+    const checkVaultStatus = async () => {
+      if (!userPubkey) {
+        setState({ status: "no_vault", vaultPubkey: null, keys: null });
+        return;
+      }
+
+      try {
+        // Check if vault exists in chrome.storage.local
+        const result = await chrome.storage.local.get(["vaultPubkey"]);
+        if (result.vaultPubkey) {
+          // Check if vault is unlocked in session storage
+          const session = await chrome.storage.session.get(["vaultKeys"]);
+          if (session.vaultKeys) {
+            // Restore keys from session
+            const keys: VaultKeys = {
+              signingKey: new Uint8Array(session.vaultKeys.signingKey),
+              encryptionKey: new Uint8Array(session.vaultKeys.encryptionKey),
+            };
+            setState({
+              status: "unlocked",
+              vaultPubkey: result.vaultPubkey,
+              keys,
+            });
+          } else {
+            setState({
+              status: "locked",
+              vaultPubkey: result.vaultPubkey,
+              keys: null,
+            });
           }
-        } catch (error) {
-          console.error("Failed to get public key:", error);
         }
+      } catch (error) {
+        console.error("Failed to check vault status:", error);
       }
     };
-    checkSigner();
-  }, []);
+
+    checkVaultStatus();
+  }, [userPubkey]);
 
   const createVault = useCallback(
     async (passphrase: string) => {

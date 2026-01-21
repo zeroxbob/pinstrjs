@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNostr } from "@nostrify/react";
+import { NUser, useNostrLogin } from "@nostrify/react/login";
 import { finalizeEvent, type EventTemplate } from "nostr-tools/pure";
 import {
   Bookmark,
@@ -7,10 +8,11 @@ import {
   Lock,
   Unlock,
   CheckCircle,
-  AlertCircle,
   Loader2,
+  LogOut,
 } from "lucide-react";
 import { useExtensionVault } from "@ext/providers/ExtensionVaultProvider";
+import { ExtensionLoginForm } from "@ext/components/ExtensionLoginForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +31,12 @@ type Status = "idle" | "loading" | "success" | "error";
 
 export function Popup() {
   const { nostr } = useNostr();
-  const { state: vaultState, userPubkey, unlockVault, encrypt } = useExtensionVault();
+  const { logins, removeLogin } = useNostrLogin();
+  const { state: vaultState, unlockVault, encrypt } = useExtensionVault();
+
+  // Get current user from logins
+  const login = logins[0];
+  const user = login ? getUserFromLogin(login) : null;
 
   // Form state
   const [url, setUrl] = useState("");
@@ -54,9 +61,9 @@ export function Popup() {
       try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (tab.id) {
-          const response = await chrome.tabs.sendMessage(tab.id, {
+          const response = (await chrome.tabs.sendMessage(tab.id, {
             type: "GET_PAGE_METADATA",
-          }) as PageMetadata;
+          })) as PageMetadata;
           setUrl(response.url);
           setTitle(response.title);
           setDescription(response.description);
@@ -103,6 +110,7 @@ export function Popup() {
   const handleUnlockVault = async () => {
     if (!passphrase) return;
     setIsUnlocking(true);
+    setErrorMessage("");
     try {
       await unlockVault(passphrase);
       setPassphrase("");
@@ -110,6 +118,12 @@ export function Popup() {
       setErrorMessage(error instanceof Error ? error.message : "Failed to unlock vault");
     } finally {
       setIsUnlocking(false);
+    }
+  };
+
+  const handleLogout = () => {
+    if (login) {
+      removeLogin(login.id);
     }
   };
 
@@ -123,8 +137,8 @@ export function Popup() {
         throw new Error("URL is required");
       }
 
-      if (!window.nostr) {
-        throw new Error("No Nostr signer found. Please install a NIP-07 extension.");
+      if (!user) {
+        throw new Error("Not logged in");
       }
 
       // Ensure URL has protocol
@@ -166,7 +180,7 @@ export function Popup() {
           eventTags.push(["t", tag]);
         });
 
-        const event = await window.nostr.signEvent({
+        const event = await user.signer.signEvent({
           kind: 39701,
           content: description.trim(),
           tags: eventTags,
@@ -183,17 +197,19 @@ export function Popup() {
     }
   };
 
-  // No signer state
-  if (!window.nostr) {
+  // Not logged in - show login form
+  if (!user) {
     return (
-      <div className="w-[400px] p-4">
+      <div className="w-[400px] p-4 bg-background text-foreground">
         <Card>
-          <CardContent className="py-8 text-center">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-lg font-semibold mb-2">No Nostr Signer Found</h2>
-            <p className="text-sm text-muted-foreground">
-              Please install a NIP-07 browser extension like nos2x or Alby to use Pinstr.
-            </p>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Bookmark className="h-5 w-5 text-violet-600" />
+              Pinstr
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ExtensionLoginForm />
           </CardContent>
         </Card>
       </div>
@@ -203,13 +219,15 @@ export function Popup() {
   // Success state
   if (status === "success") {
     return (
-      <div className="w-[400px] p-4">
+      <div className="w-[400px] p-4 bg-background text-foreground">
         <Card className="border-green-200 dark:border-green-800">
           <CardContent className="py-8 text-center">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
             <h2 className="text-lg font-semibold mb-2">Bookmark Saved!</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              {isPrivate ? "Your private bookmark has been encrypted and saved." : "Your bookmark has been saved to Nostr."}
+              {isPrivate
+                ? "Your private bookmark has been encrypted and saved."
+                : "Your bookmark has been saved to Nostr."}
             </p>
             <Button onClick={() => window.close()}>Close</Button>
           </CardContent>
@@ -222,10 +240,15 @@ export function Popup() {
     <div className="w-[400px] p-4 bg-background text-foreground">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Bookmark className="h-5 w-5 text-violet-600" />
-            Pinstr
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Bookmark className="h-5 w-5 text-violet-600" />
+              Pinstr
+            </CardTitle>
+            <Button variant="ghost" size="icon" onClick={handleLogout} title="Log out">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -349,7 +372,7 @@ export function Popup() {
             )}
 
             {/* No vault - option to create one */}
-            {!hasVault && userPubkey && (
+            {!hasVault && user && (
               <div className="space-y-2 p-3 rounded-lg bg-muted/50">
                 <p className="text-sm text-muted-foreground">
                   Enter a passphrase to enable private bookmarks:
@@ -415,5 +438,45 @@ function extractIdentifier(url: string): string {
     return urlObj.host + urlObj.pathname + urlObj.search + urlObj.hash;
   } catch {
     return url.replace(/^https?:\/\//, "");
+  }
+}
+
+function getUserFromLogin(login: { type: string; id: string; pubkey?: string; signer?: unknown }) {
+  try {
+    switch (login.type) {
+      case "nsec":
+        return NUser.fromNsecLogin(login as Parameters<typeof NUser.fromNsecLogin>[0]);
+      case "bunker":
+        // Bunker needs nostr instance, but we can still return a partial user
+        return NUser.fromNsecLogin(login as Parameters<typeof NUser.fromNsecLogin>[0]);
+      case "nip07":
+        // NIP-07 login has signer attached directly
+        if (login.pubkey && login.signer) {
+          return {
+            pubkey: login.pubkey,
+            signer: login.signer as {
+              signEvent: (event: {
+                kind: number;
+                content: string;
+                tags: string[][];
+                created_at: number;
+              }) => Promise<{
+                id: string;
+                pubkey: string;
+                created_at: number;
+                kind: number;
+                tags: string[][];
+                content: string;
+                sig: string;
+              }>;
+            },
+          };
+        }
+        return null;
+      default:
+        return null;
+    }
+  } catch {
+    return null;
   }
 }
