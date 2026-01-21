@@ -6,13 +6,13 @@ import {
   Bookmark,
   Tag as TagIcon,
   Lock,
-  Unlock,
   CheckCircle,
   Loader2,
   LogOut,
 } from "lucide-react";
 import { useExtensionVault } from "@ext/providers/ExtensionVaultProvider";
 import { ExtensionLoginForm } from "@ext/components/ExtensionLoginForm";
+import { VaultUnlockPrompt } from "@ext/components/VaultUnlockPrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,7 +32,7 @@ type Status = "idle" | "loading" | "success" | "error";
 export function Popup() {
   const { nostr } = useNostr();
   const { logins, removeLogin } = useNostrLogin();
-  const { state: vaultState, unlockVault, encrypt } = useExtensionVault();
+  const { state: vaultState, encrypt } = useExtensionVault();
 
   // Get current user from logins
   const login = logins[0];
@@ -45,15 +45,12 @@ export function Popup() {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [isPrivate, setIsPrivate] = useState(false);
-  const [passphrase, setPassphrase] = useState("");
 
   // UI state
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [isUnlocking, setIsUnlocking] = useState(false);
 
   const isVaultUnlocked = vaultState.status === "unlocked";
-  const hasVault = vaultState.status !== "no_vault";
 
   // Load page metadata on mount
   useEffect(() => {
@@ -104,20 +101,6 @@ export function Popup() {
     if (e.key === "Enter") {
       e.preventDefault();
       handleAddTag();
-    }
-  };
-
-  const handleUnlockVault = async () => {
-    if (!passphrase) return;
-    setIsUnlocking(true);
-    setErrorMessage("");
-    try {
-      await unlockVault(passphrase);
-      setPassphrase("");
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to unlock vault");
-    } finally {
-      setIsUnlocking(false);
     }
   };
 
@@ -210,6 +193,30 @@ export function Popup() {
           </CardHeader>
           <CardContent>
             <ExtensionLoginForm />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Logged in but vault not unlocked - show vault unlock prompt
+  if (!isVaultUnlocked) {
+    return (
+      <div className="w-[400px] p-4 bg-background text-foreground">
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Bookmark className="h-5 w-5 text-violet-600" />
+                Pinstr
+              </CardTitle>
+              <Button variant="ghost" size="icon" onClick={handleLogout} title="Log out">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <VaultUnlockPrompt />
           </CardContent>
         </Card>
       </div>
@@ -324,82 +331,18 @@ export function Popup() {
               )}
             </div>
 
-            {/* Private bookmark section */}
-            {hasVault && (
-              <div className="space-y-3 p-3 rounded-lg bg-muted/50">
-                {isVaultUnlocked ? (
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="private"
-                      checked={isPrivate}
-                      onCheckedChange={(checked) => setIsPrivate(checked === true)}
-                    />
-                    <Label htmlFor="private" className="flex items-center gap-2 cursor-pointer">
-                      <Lock className="h-4 w-4" />
-                      Private bookmark
-                    </Label>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Lock className="h-4 w-4" />
-                      Unlock vault for private bookmarks
-                    </p>
-                    <div className="flex gap-2">
-                      <Input
-                        type="password"
-                        value={passphrase}
-                        onChange={(e) => setPassphrase(e.target.value)}
-                        placeholder="Passphrase"
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleUnlockVault}
-                        disabled={!passphrase || isUnlocking}
-                      >
-                        {isUnlocking ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Unlock className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* No vault - option to create one */}
-            {!hasVault && user && (
-              <div className="space-y-2 p-3 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">
-                  Enter a passphrase to enable private bookmarks:
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    type="password"
-                    value={passphrase}
-                    onChange={(e) => setPassphrase(e.target.value)}
-                    placeholder="Create passphrase"
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleUnlockVault}
-                    disabled={!passphrase || isUnlocking}
-                  >
-                    {isUnlocking ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Lock className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
+            {/* Private bookmark checkbox */}
+            <div className="flex items-center space-x-2 p-3 rounded-lg bg-muted/50">
+              <Checkbox
+                id="private"
+                checked={isPrivate}
+                onCheckedChange={(checked) => setIsPrivate(checked === true)}
+              />
+              <Label htmlFor="private" className="flex items-center gap-2 cursor-pointer">
+                <Lock className="h-4 w-4" />
+                Private bookmark (encrypted)
+              </Label>
+            </div>
 
             {status === "error" && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 text-sm">
