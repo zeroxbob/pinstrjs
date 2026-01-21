@@ -5,6 +5,7 @@ import { NostrLoginProvider } from "@nostrify/react/login";
 import { Popup } from "./Popup";
 import { ExtensionNostrProvider } from "@ext/providers/ExtensionNostrProvider";
 import { ExtensionVaultProvider } from "@ext/providers/ExtensionVaultProvider";
+import { PendingLoginHandler } from "./PendingLoginHandler";
 import "@/index.css";
 
 const queryClient = new QueryClient({
@@ -20,11 +21,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <NostrLoginProvider storageKey="pinstr-extension-logins">
-        <ExtensionNostrProvider>
-          <ExtensionVaultProvider>
-            <Popup />
-          </ExtensionVaultProvider>
-        </ExtensionNostrProvider>
+        <PendingLoginHandler>
+          <ExtensionNostrProvider>
+            <ExtensionVaultProvider>
+              <Popup />
+            </ExtensionVaultProvider>
+          </ExtensionNostrProvider>
+        </PendingLoginHandler>
       </NostrLoginProvider>
     </QueryClientProvider>
   </React.StrictMode>

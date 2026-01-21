@@ -27,6 +27,7 @@ export default defineConfig({
         popup: path.resolve(extensionDir, "popup.html"),
         content: path.resolve(extensionDir, "src/content.ts"),
         injected: path.resolve(extensionDir, "src/injected.ts"),
+        background: path.resolve(extensionDir, "src/background.ts"),
       },
       output: {
         entryFileNames: "[name].js",

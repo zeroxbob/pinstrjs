@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { KeyRound, Cloud, Loader2, AlertTriangle, Puzzle } from "lucide-react";
 import { useNostr } from "@nostrify/react";
 import { NLogin, useNostrLogin } from "@nostrify/react/login";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { checkNip07Available, nip07GetPublicKey, Nip07ProxySigner } from "@ext/lib/nip07Proxy";
+import { getExtensionLoginUrl } from "@ext/config";
 
 const validateNsec = (nsec: string) => {
   return /^nsec1[a-zA-Z0-9]{58}$/.test(nsec);
@@ -25,12 +25,6 @@ export function ExtensionLoginForm() {
   const [bunkerUri, setBunkerUri] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nip07Available, setNip07Available] = useState<boolean | null>(null);
-
-  // Check if NIP-07 is available on the current tab
-  useEffect(() => {
-    checkNip07Available().then(setNip07Available);
-  }, []);
 
   const handleNsecLogin = () => {
     setError(null);
@@ -82,28 +76,16 @@ export function ExtensionLoginForm() {
     }
   };
 
-  const handleNip07Login = async () => {
-    setError(null);
-    setIsLoading(true);
+  const handleNip07Login = () => {
+    // Get the extension ID
+    const extensionId = chrome.runtime.id;
 
-    try {
-      const pubkey = await nip07GetPublicKey();
-      const signer = new Nip07ProxySigner(pubkey);
+    // Open the web app login page with the extension ID
+    const loginUrl = `${getExtensionLoginUrl()}?extensionId=${extensionId}`;
 
-      // Create a custom login object that uses our proxy signer
-      const login = {
-        id: `nip07-${pubkey}`,
-        type: "nip07" as const,
-        pubkey,
-        signer,
-      };
-
-      addLogin(login);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to connect to extension");
-    } finally {
-      setIsLoading(false);
-    }
+    chrome.tabs.create({
+      url: loginUrl,
+    });
   };
 
   return (
@@ -143,37 +125,19 @@ export function ExtensionLoginForm() {
             <p className="text-sm text-muted-foreground">
               Sign in using your NIP-07 browser extension (nos2x, Alby, etc.)
             </p>
-            {nip07Available === false && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  No NIP-07 extension detected on this page. Make sure you have a Nostr
-                  extension installed and that it's enabled for this site.
-                </AlertDescription>
-              </Alert>
-            )}
-            {nip07Available === null && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            )}
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                This will open the Pinstr web app where you can connect your NIP-07 extension.
+                The approval dialog will show <strong>pinstr.app</strong> (or{" "}
+                <strong>localhost</strong> in development), confirming the request is from
+                Pinstr.
+              </AlertDescription>
+            </Alert>
           </div>
-          <Button
-            className="w-full"
-            onClick={handleNip07Login}
-            disabled={isLoading || nip07Available !== true}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <Puzzle className="h-4 w-4 mr-2" />
-                Connect Extension
-              </>
-            )}
+          <Button className="w-full" onClick={handleNip07Login}>
+            <Puzzle className="h-4 w-4 mr-2" />
+            Connect Extension
           </Button>
         </TabsContent>
 
@@ -243,7 +207,7 @@ export function ExtensionLoginForm() {
       </Tabs>
 
       <p className="text-xs text-center text-muted-foreground pt-2">
-        Extension login requires the current page to have your NIP-07 signer available.
+        Your credentials are stored securely and only in your browser.
       </p>
     </div>
   );

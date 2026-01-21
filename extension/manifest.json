@@ -35,5 +35,14 @@
       "resources": ["injected.js"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:*/*",
+      "https://pinstr.app/*"
+    ]
+  }
 }
