@@ -60,6 +60,24 @@ To build for production:
 npm run build
 ```
 
+## 🧩 Chrome Extension
+
+To install the Pinstr browser extension:
+
+1. **Clone or download** this repository
+
+2. **Open Chrome** and navigate to `chrome://extensions/`
+
+3. **Enable Developer Mode** by toggling the switch in the top right corner
+
+4. **Click "Load unpacked"** and select the `extension/dist/` folder from this repository
+
+5. **Pin the extension** to your toolbar for easy access
+
+The extension allows you to bookmark any webpage with a single click. It supports NIP-07 extension login, nsec, and bunker authentication, plus private encrypted bookmarks using the same vault system as the web app.
+
+**For developers:** To rebuild the extension after making changes, run `npm run ext:build`. The built extension is committed to the repo so users can install directly without building.
+
 ## 📝 How to Use
 
 1. **Sign in** with your Nostr browser extension (Alby, nos2x, etc.)
