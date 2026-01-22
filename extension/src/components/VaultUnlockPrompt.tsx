@@ -70,12 +70,12 @@ export function VaultUnlockPrompt() {
           {isCreating ? (
             <>
               <strong>Important:</strong> Use the same passphrase you use on{" "}
-              <strong>pinstr.app</strong>. This ensures your private bookmarks
+              <strong>pinstr.co</strong>. This ensures your private bookmarks
               are accessible across both the extension and web app.
             </>
           ) : (
             <>
-              Enter the same passphrase you use on <strong>pinstr.app</strong> to access your
+              Enter the same passphrase you use on <strong>pinstr.co</strong> to access your
               private bookmarks.
             </>
           )}

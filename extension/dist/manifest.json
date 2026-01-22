@@ -42,7 +42,7 @@
   "externally_connectable": {
     "matches": [
       "http://localhost:*/*",
-      "https://pinstr.app/*"
+      "https://pinstr.co/*"
     ]
   }
 }

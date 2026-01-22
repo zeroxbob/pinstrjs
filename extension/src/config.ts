@@ -10,7 +10,7 @@
  * - Make sure the dev server is running
  *
  * For production:
- * - Use your deployed domain (e.g., "https://pinstr.app")
+ * - Use your deployed domain (e.g., "https://pinstr.co")
  */
 export const APP_BASE_URL = "http://localhost:5173";
 
