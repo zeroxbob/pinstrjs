@@ -130,8 +130,7 @@ export default function ExtensionLoginPage() {
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   Your browser extension will ask you to approve this connection. The
-                  approval will show <strong>pinstr.co</strong> (or <strong>localhost</strong>{" "}
-                  in development), confirming it's Pinstr requesting access.
+                  approval will show <strong>pinstr.co</strong>, confirming it's Pinstr requesting access.
                 </p>
                 {error && (
                   <Alert variant="destructive">
