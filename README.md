@@ -76,6 +76,8 @@ To install the Pinstr browser extension:
 
 The extension allows you to bookmark any webpage with a single click. It supports NIP-07 extension login, nsec, and bunker authentication, plus private encrypted bookmarks using the same vault system as the web app.
 
+**Note:** The extension uses pinstr.co for authentication. When you click "Connect Extension," it will open pinstr.co in a new tab where you can log in with your NIP-07 browser extension.
+
 **For developers:** To rebuild the extension after making changes, run `npm run ext:build`. The built extension is committed to the repo so users can install directly without building.
 
 ## 📝 How to Use

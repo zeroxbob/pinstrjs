@@ -4,15 +4,12 @@
 
 /**
  * Base URL for the Pinstr web app.
+ * The extension always uses the production site for login.
  *
- * For local development:
- * - Change to "http://localhost:5173" (or your dev server port)
- * - Make sure the dev server is running
- *
- * For production:
- * - Use your deployed domain (e.g., "https://pinstr.co")
+ * Note for developers: If you're developing both the extension AND the website locally,
+ * you can temporarily change this to "http://localhost:5173" for testing.
  */
-export const APP_BASE_URL = "http://localhost:5173";
+export const APP_BASE_URL = "https://pinstr.co";
 
 /**
  * Get the extension login URL
