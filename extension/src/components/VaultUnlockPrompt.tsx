@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useExtensionVault } from "@ext/providers/ExtensionVaultProvider";
+import { useExtensionVault } from "@ext/hooks/useExtensionVault";
 
 const MIN_PASSPHRASE_LENGTH = 12;
 

@@ -129,8 +129,8 @@ export function ExtensionLoginForm() {
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 This will open the Pinstr web app where you can connect your NIP-07 extension.
-                The approval dialog will show <strong>pinstr.co, confirming the request is from
-                Pinstr.
+                The approval dialog will show <strong>pinstr.co</strong>, confirming the request
+                is from Pinstr.
               </AlertDescription>
             </Alert>
           </div>

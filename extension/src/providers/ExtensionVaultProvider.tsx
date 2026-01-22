@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNostrLogin } from "@nostrify/react/login";
 import {
   deriveSaltFromPubkey,
@@ -11,6 +11,7 @@ import {
 } from "@/lib/vaultCrypto";
 import { getPublicKey } from "nostr-tools/pure";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { VaultContext } from "@ext/contexts/VaultContext";
 
 type VaultStatus = "no_vault" | "locked" | "unlocked";
 
@@ -18,26 +19,6 @@ interface VaultState {
   status: VaultStatus;
   vaultPubkey: string | null;
   keys: VaultKeys | null;
-}
-
-interface VaultContextType {
-  state: VaultState;
-  userPubkey: string | null;
-  createVault: (passphrase: string) => Promise<void>;
-  unlockVault: (passphrase: string) => Promise<void>;
-  lockVault: () => void;
-  encrypt: (plaintext: string) => string;
-  decrypt: (ciphertext: string) => string;
-}
-
-const VaultContext = createContext<VaultContextType | null>(null);
-
-export function useExtensionVault() {
-  const context = useContext(VaultContext);
-  if (!context) {
-    throw new Error("useExtensionVault must be used within ExtensionVaultProvider");
-  }
-  return context;
 }
 
 interface ExtensionVaultProviderProps {

@@ -10,7 +10,7 @@ import {
   Loader2,
   LogOut,
 } from "lucide-react";
-import { useExtensionVault } from "@ext/providers/ExtensionVaultProvider";
+import { useExtensionVault } from "@ext/hooks/useExtensionVault";
 import { ExtensionLoginForm } from "@ext/components/ExtensionLoginForm";
 import { VaultUnlockPrompt } from "@ext/components/VaultUnlockPrompt";
 import { Button } from "@/components/ui/button";
