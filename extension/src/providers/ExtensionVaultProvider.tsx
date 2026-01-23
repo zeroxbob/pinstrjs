@@ -7,10 +7,11 @@ import {
   decryptContent,
   serializeEncryptedData,
   deserializeEncryptedData,
+  saltToHex,
+  hexToSalt,
   type VaultKeys,
 } from "@/lib/vaultCrypto";
 import { getPublicKey } from "nostr-tools/pure";
-import { bytesToHex } from "@noble/hashes/utils.js";
 import { VaultContext } from "@ext/contexts/VaultContext";
 
 type VaultStatus = "no_vault" | "locked" | "unlocked";
@@ -54,10 +55,10 @@ export const ExtensionVaultProvider: React.FC<ExtensionVaultProviderProps> = ({
           // Check if vault is unlocked in session storage
           const session = await chrome.storage.session.get(["vaultKeys"]);
           if (session.vaultKeys) {
-            // Restore keys from session
+            // Restore keys from session (convert from hex back to Uint8Array)
             const keys: VaultKeys = {
-              signingKey: new Uint8Array(session.vaultKeys.signingKey),
-              encryptionKey: new Uint8Array(session.vaultKeys.encryptionKey),
+              signingKey: hexToSalt(session.vaultKeys.signingKey),
+              encryptionKey: hexToSalt(session.vaultKeys.encryptionKey),
             };
             setState({
               status: "unlocked",
@@ -88,7 +89,7 @@ export const ExtensionVaultProvider: React.FC<ExtensionVaultProviderProps> = ({
 
       const salt = deriveSaltFromPubkey(userPubkey);
       const keys = deriveVaultKeys(passphrase, salt);
-      const vaultPubkey = bytesToHex(getPublicKey(keys.signingKey));
+      const vaultPubkey = getPublicKey(keys.signingKey); // Returns hex string
 
       // Store vault pubkey persistently
       await chrome.storage.local.set({ vaultPubkey });
@@ -96,8 +97,8 @@ export const ExtensionVaultProvider: React.FC<ExtensionVaultProviderProps> = ({
       // Store keys in session (cleared when browser closes)
       await chrome.storage.session.set({
         vaultKeys: {
-          signingKey: Array.from(keys.signingKey),
-          encryptionKey: Array.from(keys.encryptionKey),
+          signingKey: saltToHex(keys.signingKey),
+          encryptionKey: saltToHex(keys.encryptionKey),
         },
       });
 
@@ -118,7 +119,7 @@ export const ExtensionVaultProvider: React.FC<ExtensionVaultProviderProps> = ({
 
       const salt = deriveSaltFromPubkey(userPubkey);
       const keys = deriveVaultKeys(passphrase, salt);
-      const derivedVaultPubkey = bytesToHex(getPublicKey(keys.signingKey));
+      const derivedVaultPubkey = getPublicKey(keys.signingKey); // Returns hex string
 
       // Verify the derived pubkey matches stored pubkey
       const result = await chrome.storage.local.get(["vaultPubkey"]);
@@ -129,8 +130,8 @@ export const ExtensionVaultProvider: React.FC<ExtensionVaultProviderProps> = ({
       // Store in session
       await chrome.storage.session.set({
         vaultKeys: {
-          signingKey: Array.from(keys.signingKey),
-          encryptionKey: Array.from(keys.encryptionKey),
+          signingKey: saltToHex(keys.signingKey),
+          encryptionKey: saltToHex(keys.encryptionKey),
         },
       });
 
