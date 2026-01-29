@@ -142,7 +142,7 @@ export function Popup() {
         const encryptedContent = encrypt(contentToEncrypt);
 
         const eventTemplate: EventTemplate = {
-          kind: 39701,
+          kind: 39702, // Private bookmark kind (separate from public 39701)
           content: encryptedContent,
           tags: [["d", identifier]],
           created_at: Math.floor(Date.now() / 1000),

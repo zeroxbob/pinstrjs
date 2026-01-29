@@ -120,7 +120,7 @@ export default function TestPrivateBookmarkPage() {
                 className="font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Paste the full JSON of a private bookmark event (kind 39701)
+                Paste the full JSON of a private bookmark event (kind 39702)
               </p>
             </div>
 

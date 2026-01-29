@@ -2,10 +2,11 @@
 
 ### **NIP-B0 Bookmark Support**
 - ✅ Full implementation of the NIP-B0 web bookmarks specification
-- ✅ Event kind 39701 (addressable events)
-- ✅ Required `d` tag with URL without scheme
+- ✅ Event kind 39701 for public bookmarks (addressable events)
+- ✅ Event kind 39702 for private bookmarks (encrypted, vault-signed)
+- ✅ Required `d` tag with URL without scheme (public) or random UUID (private)
 - ✅ Optional tags: `title`, `published_at`, and `t` (topics)
-- ✅ Content field for bookmark descriptions
+- ✅ Content field for bookmark descriptions (plaintext for public, encrypted JSON for private)
 
 ### **Authentication**
 - ✅ Sign in via Nostr browser extensions (NIP-07)

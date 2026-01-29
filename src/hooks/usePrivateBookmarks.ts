@@ -17,9 +17,10 @@ import type { Bookmark } from "./useBookmarks";
 import type { CreateBookmarkData } from "./useCreateBookmark";
 
 /**
- * Kind for private bookmarks (same as public, but signed by vault key)
+ * Kind for private bookmarks - separate kind from public (39701) to prevent
+ * clients from displaying encrypted content as scrambled text
  */
-const PRIVATE_BOOKMARK_KIND = 39701;
+const PRIVATE_BOOKMARK_KIND = 39702;
 
 /**
  * Structure of encrypted bookmark content
