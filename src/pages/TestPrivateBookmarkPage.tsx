@@ -92,7 +92,7 @@ export default function TestPrivateBookmarkPage() {
                 </p>
               </div>
             </Link>
-            <Link to="/bookmarks">
+            <Link to="/my-bookmarks">
               <Button variant="outline">Back to Bookmarks</Button>
             </Link>
           </div>

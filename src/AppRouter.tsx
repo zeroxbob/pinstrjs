@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 import Index from "./pages/Index";
+import AllBookmarksPage from "./pages/AllBookmarksPage";
 import BookmarksPage from "./pages/BookmarksPage";
 import BookmarkletPage from "./pages/BookmarkletPage";
 import BookmarkletInstallPage from "./pages/BookmarkletInstallPage";
@@ -22,7 +23,8 @@ export function AppRouter() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/bookmarks" element={<BookmarksPage />} />
+        <Route path="/bookmarks" element={<AllBookmarksPage />} />
+        <Route path="/my-bookmarks" element={<BookmarksPage />} />
         <Route path="/bookmarklet" element={<BookmarkletPage />} />
         <Route path="/install-bookmarklet" element={<BookmarkletInstallPage />} />
         <Route path="/settings" element={<SettingsPage />} />

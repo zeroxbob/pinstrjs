@@ -46,7 +46,7 @@ const Index = () => {
               {user && <AddBookmarkDialog />}
               <Button
                 variant="outline"
-                onClick={() => navigate('/bookmarks')}
+                onClick={() => navigate('/my-bookmarks')}
                 className="gap-2"
               >
                 My Bookmarks

@@ -299,7 +299,7 @@ export function BookmarkletPage() {
                 <p className="text-sm text-gray-500">This window will close automatically...</p>
               ) : (
                 <div className="flex gap-4 justify-center">
-                  <Button onClick={() => navigate('/bookmarks')}>
+                  <Button onClick={() => navigate('/my-bookmarks')}>
                     View My Bookmarks
                   </Button>
                   <Button variant="outline" onClick={() => navigate('/')}>
