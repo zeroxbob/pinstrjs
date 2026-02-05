@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
@@ -11,21 +13,10 @@ export function FAQPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-violet-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            to="/"
-            className="inline-flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-8 hover:opacity-80 transition-opacity"
-          >
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-              Pinstr
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Bookmarks on Nostr
-            </p>
-          </Link>
+      <Header />
 
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Frequently Asked Questions</h2>
         </div>
 
@@ -159,17 +150,10 @@ export function FAQPage() {
 
           <Separator />
 
-          {/* Back to Home */}
-          <div className="text-center py-4">
-            <Link
-              to="/"
-              className="text-violet-600 hover:underline font-medium"
-            >
-              &larr; Back to Pinstr
-            </Link>
-          </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
