@@ -227,16 +227,17 @@ export default function BookmarksPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             <p>
-              Powered by{' '}
+              Built with ❤️ on{' '}
               <a
-                href="https://github.com/nostr-protocol/nips/blob/master/B0.md"
+                href="https://nostr.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-violet-600 hover:underline font-medium"
+                className="text-violet-600 hover:underline"
               >
-                NIP-B0
+                Nostr
               </a>
-              {' '}• Vibed with{' '}
+              {' • '}
+              Vibed with{' '}
               <a
                 href="https://soapbox.pub/mkstack"
                 target="_blank"

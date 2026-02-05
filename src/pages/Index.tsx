@@ -1,6 +1,6 @@
 import { useSeoMeta } from '@unhead/react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Bookmark, Loader2, AlertCircle, ArrowRight, Settings } from 'lucide-react';
+import { Bookmark, Loader2, AlertCircle, ArrowRight, Settings, Lock, Smartphone, Heart, Globe, Shield, Key } from 'lucide-react';
 import { useBookmarks } from '@/hooks/useBookmarks';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
@@ -9,6 +9,8 @@ import { LoginArea } from '@/components/auth/LoginArea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const PREVIEW_LIMIT = 9;
 
 const Index = () => {
   const navigate = useNavigate();
@@ -20,6 +22,9 @@ const Index = () => {
 
   const { user } = useCurrentUser();
   const { data: bookmarks, isLoading, error } = useBookmarks();
+
+  const previewBookmarks = bookmarks?.slice(0, PREVIEW_LIMIT);
+  const hasMore = bookmarks && bookmarks.length > PREVIEW_LIMIT;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -39,13 +44,6 @@ const Index = () => {
 
             <div className="flex items-center gap-4">
               {user && <AddBookmarkDialog />}
-              <Button
-                variant="outline"
-                onClick={() => navigate('/install-bookmarklet')}
-                className="gap-2 hidden sm:flex"
-              >
-                Install Bookmarklet
-              </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate('/bookmarks')}
@@ -71,12 +69,12 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
-        <div className="text-center mb-12 space-y-4">
+        <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
             Save Your Favorite Links
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            A decentralized bookmark manager powered by Nostr (NIP-B0). Your bookmarks, your keys, your data.
+            A decentralized bookmark manager powered by Nostr. Your bookmarks, your keys, your data.
           </p>
           {!user && (
             <div className="pt-4">
@@ -92,7 +90,124 @@ const Index = () => {
           )}
         </div>
 
-        {/* Bookmarks Grid */}
+        {/* Features Section */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white text-center mb-8">
+            Why Pinstr?
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Public & Private Bookmarks */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                    <Lock className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">Public & Private Bookmarks</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Save bookmarks publicly or encrypt them in your private vault. Your choice.
+                    </p>
+                    <Link
+                      to="/how-it-works"
+                      className="text-sm text-violet-600 hover:underline mt-2 inline-block"
+                    >
+                      Learn how it works &rarr;
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Android App */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                    <Smartphone className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">Android App</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Use Pinstr on your phone with the new Android app. Bookmark on the go.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Free & Value4Value */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                    <Heart className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">Free & Value4Value</h4>
+                    <p className="text-sm text-muted-foreground">
+                      No subscriptions, no ads. Pinstr is free to use. Support development if you want to.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Decentralized */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                    <Globe className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">Decentralized</h4>
+                    <p className="text-sm text-muted-foreground">
+                      No single point of failure. Your bookmarks live on relays you choose.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Censorship Resistant */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                    <Shield className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">Censorship Resistant</h4>
+                    <p className="text-sm text-muted-foreground">
+                      No one can delete your data or lock you out of your own bookmarks.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* You Own Your Data */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                    <Key className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-1">You Own Your Data</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Your keys, your bookmarks. Take them to any Nostr client, anytime.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Bookmarks Section */}
         <div className="max-w-6xl mx-auto">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -129,21 +244,36 @@ const Index = () => {
                 </p>
               </CardContent>
             </Card>
-          ) : bookmarks && bookmarks.length > 0 ? (
+          ) : previewBookmarks && previewBookmarks.length > 0 ? (
             <>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
                   Latest Bookmarks
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  {bookmarks.length} {bookmarks.length === 1 ? 'bookmark' : 'bookmarks'}
-                </p>
+                {hasMore && (
+                  <p className="text-sm text-muted-foreground">
+                    Showing {PREVIEW_LIMIT} of {bookmarks.length}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {bookmarks.map((bookmark) => (
+                {previewBookmarks.map((bookmark) => (
                   <BookmarkCard key={bookmark.id} bookmark={bookmark} />
                 ))}
               </div>
+              {hasMore && (
+                <div className="text-center mt-8">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigate('/bookmarks')}
+                    className="gap-2"
+                  >
+                    View All Bookmarks
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <Card className="border-dashed">
@@ -170,7 +300,7 @@ const Index = () => {
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t text-center text-sm text-muted-foreground">
           <p>
-            Built with NIP-B0 • Powered by{' '}
+            Built with ❤️ on{' '}
             <a
               href="https://nostr.com"
               target="_blank"
@@ -180,19 +310,17 @@ const Index = () => {
               Nostr
             </a>
             {' • '}
-            <span>
-              Vibed with{' '}
-              <a
-                href="https://soapbox.pub/mkstack"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-violet-600 hover:underline font-medium"
-              >
-                MKStack
-              </a>
-            </span>
+            Vibed with{' '}
+            <a
+              href="https://soapbox.pub/mkstack"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-violet-600 hover:underline font-medium"
+            >
+              MKStack
+            </a>
             {' • '}
-            <a href="/privacy-policy" className="text-gray-500 hover:underline">
+            <a href="/privacy-policy" className="hover:underline">
               Privacy
             </a>
           </p>
