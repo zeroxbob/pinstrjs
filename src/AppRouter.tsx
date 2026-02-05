@@ -15,6 +15,8 @@ import TestPrivateBookmarkPage from "./pages/TestPrivateBookmarkPage";
 import ExtensionLoginPage from "./pages/ExtensionLoginPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
+import FAQPage from "./pages/FAQPage";
+import ZapsPage from "./pages/ZapsPage";
 import NotFound from "./pages/NotFound";
 
 export function AppRouter() {
@@ -35,6 +37,8 @@ export function AppRouter() {
         <Route path="/extension-login" element={<ExtensionLoginPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/zaps" element={<ZapsPage />} />
         {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
         <Route path="/:nip19" element={<NIP19Page />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

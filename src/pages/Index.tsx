@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
 import { AddBookmarkDialog } from '@/components/AddBookmarkDialog';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { Footer } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -296,36 +297,9 @@ const Index = () => {
             <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
           </div>
         )}
-
-        {/* Footer */}
-        <footer className="mt-16 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>
-            Built with ❤️ on{' '}
-            <a
-              href="https://nostr.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-violet-600 hover:underline"
-            >
-              Nostr
-            </a>
-            {' • '}
-            Vibed with{' '}
-            <a
-              href="https://soapbox.pub/mkstack"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-violet-600 hover:underline font-medium"
-            >
-              MKStack
-            </a>
-            {' • '}
-            <a href="/privacy-policy" className="hover:underline">
-              Privacy
-            </a>
-          </p>
-        </footer>
       </main>
+
+      <Footer />
     </div>
   );
 };

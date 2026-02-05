@@ -7,6 +7,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { BookmarkCard } from '@/components/BookmarkCard';
 import { AddBookmarkDialog } from '@/components/AddBookmarkDialog';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { Footer } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -222,38 +223,7 @@ export default function BookmarksPage() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t mt-16 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="text-center text-sm text-muted-foreground">
-            <p>
-              Built with ❤️ on{' '}
-              <a
-                href="https://nostr.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-violet-600 hover:underline"
-              >
-                Nostr
-              </a>
-              {' • '}
-              Vibed with{' '}
-              <a
-                href="https://soapbox.pub/mkstack"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-violet-600 hover:underline font-medium"
-              >
-                MKStack
-              </a>
-              {' • '}
-              <a href="/privacy-policy" className="hover:underline">
-                Privacy
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
