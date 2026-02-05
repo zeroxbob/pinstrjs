@@ -68,6 +68,16 @@ export function Footer() {
                   Android App <span className="text-xs">(coming soon)</span>
                 </span>
               </li>
+              <li>
+                <Link to="/extension" className="hover:text-foreground transition-colors">
+                  Chrome Extension
+                </Link>
+              </li>
+              <li>
+                <Link to="/install-bookmarklet" className="hover:text-foreground transition-colors">
+                  Bookmarklet
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
