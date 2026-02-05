@@ -193,6 +193,10 @@ const Index = () => {
                 MKStack
               </a>
             </span>
+            {' • '}
+            <a href="/privacy-policy" className="text-gray-500 hover:underline">
+              Privacy
+            </a>
           </p>
         </footer>
       </main>

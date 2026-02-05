@@ -247,6 +247,10 @@ export default function BookmarksPage() {
               >
                 MKStack
               </a>
+              {' • '}
+              <a href="/privacy-policy" className="hover:underline">
+                Privacy
+              </a>
             </p>
           </div>
         </div>
