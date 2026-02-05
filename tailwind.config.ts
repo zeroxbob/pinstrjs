@@ -56,6 +56,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				violet: {
+					50: '#f6f5f9',
+					100: '#e7e2f2',
+					200: '#cec3e4',
+					300: '#af9dd1',
+					400: '#957ec2',
+					500: '#8061b6',
+					600: '#6747a7',
+					700: '#55359b',
+					800: '#42277c',
+					900: '#321d5d',
+					950: '#1f113b',
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

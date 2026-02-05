@@ -22,7 +22,7 @@ const Index = () => {
   const { data: bookmarks, isLoading, error } = useBookmarks();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
       <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -30,7 +30,7 @@ const Index = () => {
             <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <img src="/logo.png" alt="Pinstr" className="h-10 w-10 rounded-xl" />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
                   Pinstr
                 </h1>
                 <p className="text-xs text-muted-foreground">Bookmarks on Nostr</p>
@@ -80,7 +80,7 @@ const Index = () => {
           </p>
           {!user && (
             <div className="pt-4">
-              <Card className="max-w-md mx-auto border-blue-200 dark:border-blue-800">
+              <Card className="max-w-md mx-auto border-violet-200 dark:border-violet-800">
                 <CardContent className="py-6 px-8 text-center">
                   <p className="text-muted-foreground mb-4">
                     Sign in with your Nostr account to create and manage bookmarks
@@ -163,7 +163,7 @@ const Index = () => {
         {/* Loading indicator for initial load */}
         {isLoading && (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
           </div>
         )}
 
@@ -175,7 +175,7 @@ const Index = () => {
               href="https://nostr.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-violet-600 hover:underline"
             >
               Nostr
             </a>
@@ -186,7 +186,7 @@ const Index = () => {
                 href="https://soapbox.pub/mkstack"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-600 hover:underline font-medium"
+                className="text-violet-600 hover:underline font-medium"
               >
                 MKStack
               </a>
