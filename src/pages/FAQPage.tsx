@@ -114,6 +114,26 @@ export function FAQPage() {
 
           <Card>
             <CardHeader>
+              <CardTitle>How can I improve my privacy?</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground space-y-2">
+              <p>
+                Private bookmarks are already encrypted and signed by a separate keypair, but you
+                can go further. Consider using your own relay — that way your encrypted events
+                are only stored on infrastructure you control.
+              </p>
+              <p>
+                You could also use a completely separate keypair (a new npub) just for Pinstr,
+                so your bookmarks are not linked to your other Nostr identities at all.
+                Remember, npubs are cheap.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          <Card>
+            <CardHeader>
               <CardTitle>What happens if I lose my vault passphrase?</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-2">
