@@ -62,9 +62,7 @@ export default function BookmarksPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="p-2 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl shadow-lg">
-                <BookmarkIcon className="h-6 w-6 text-white" />
-              </div>
+              <img src="/logo.png" alt="Pinstr" className="h-10 w-10 rounded-xl shadow-lg" />
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
                   Pinstr
