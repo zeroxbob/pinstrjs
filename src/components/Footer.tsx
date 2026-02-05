@@ -64,9 +64,14 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <span className="text-muted-foreground/60">
-                  Android App <span className="text-xs">(coming soon)</span>
-                </span>
+                <a
+                  href="https://github.com/zeroxbob/pinstr-kotlin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors"
+                >
+                  Android App
+                </a>
               </li>
               <li>
                 <Link to="/extension" className="hover:text-foreground transition-colors">
