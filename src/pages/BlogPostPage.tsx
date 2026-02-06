@@ -7,6 +7,210 @@ import { blogPosts } from './BlogPage';
 
 // Blog post content - add content for each slug here
 const blogContent: Record<string, React.ReactNode> = {
+  'how-pinstr-encrypts-private-bookmarks': (
+    <>
+      <p>
+        Nostr is great for public data. But what about bookmarks you don't want anyone else to see?
+        Links to medical resources, financial tools, private research — things that are nobody's
+        business but yours.
+      </p>
+
+      <p>
+        The challenge is that Nostr is a public protocol. Every event you publish is signed by your
+        keypair and broadcast to relays. Anyone can query for events by your pubkey and see what
+        you've been bookmarking.
+      </p>
+
+      <p>
+        Pinstr solves this with a <strong>private vault</strong> — a way to encrypt bookmarks so
+        that only you can read them, and so that they can't be linked back to your public Nostr
+        identity.
+      </p>
+
+      <h3>The Problem with Naive Encryption</h3>
+      <p>
+        You might think: just encrypt the bookmark content and publish it. But that doesn't solve
+        the identity problem. If you sign an encrypted event with your main Nostr key, anyone can
+        still see that <em>you</em> published <em>something</em> — they just can't read what.
+      </p>
+      <p>
+        For true privacy, we need both encrypted content <em>and</em> an unlinkable identity.
+      </p>
+
+      <h3>How Pinstr's Vault Works</h3>
+      <p>
+        When you create a private bookmark, Pinstr derives a completely separate keypair from a
+        passphrase you choose. This vault keypair has no cryptographic relationship to your main
+        Nostr identity.
+      </p>
+
+      <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed whitespace-pre text-foreground">
+{`Your Passphrase + Your npub
+         │
+         ▼
+┌─────────────────────┐
+│     Argon2id        │  ← Memory-hard key derivation
+│  (expensive to      │
+│   brute-force)      │
+└────────┬────────────┘
+         │
+         ▼  64 bytes
+   ┌─────┴──────┐
+   │            │
+   ▼            ▼
+Signing Key  Encryption Key
+ (32 bytes)   (32 bytes)
+   │            │
+   │            ▼
+   │     ┌──────────────┐
+   │     │  AES-256-GCM │ ← Encrypts bookmark content
+   │     └──────┬───────┘
+   │            │
+   ▼            ▼
+Separate    Encrypted event
+npub        (kind 39702)
+   │            │
+   └─────┬──────┘
+         │
+         ▼
+   Published to relays
+   Nobody can read it
+   Nobody knows it's yours`}
+      </pre>
+
+      <p>
+        The key derivation uses <strong>Argon2id</strong>, the winner of the Password Hashing
+        Competition. It's designed to be computationally expensive, making brute-force attacks
+        impractical even with specialized hardware.
+      </p>
+
+      <p>
+        From the 64 bytes of derived key material, we split out a signing key and an encryption key.
+        The signing key generates a vault pubkey that's used to sign private bookmark events. The
+        encryption key is used with <strong>AES-256-GCM</strong> to encrypt the bookmark data.
+      </p>
+
+      <h3>What Gets Published</h3>
+      <p>
+        A private bookmark event looks like this:
+      </p>
+
+      <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed whitespace-pre text-foreground">
+{`┌─────────────────────────────────────────────────────────┐
+│ Private Bookmark (kind 39702)                           │
+│ - Signed by: vault keypair                              │
+│ - d-tag: random UUID                                    │
+│ - content: AES-256-GCM encrypted JSON                   │
+│            (contains url, title, description, tags)     │
+└─────────────────────────────────────────────────────────┘`}
+      </pre>
+
+      <p>
+        The event is signed by your vault keypair — not your main Nostr key. The <code>d</code> tag
+        is a random UUID, so there's no way to correlate events by URL. The content is encrypted
+        JSON containing all the bookmark data.
+      </p>
+
+      <p>
+        To an outside observer, these events are just opaque blobs signed by an unknown pubkey.
+        There's no way to link them to your public Nostr profile.
+      </p>
+
+      <h3>Why Not Use NIP-44 Gift Wrap?</h3>
+      <p>
+        Nostr has an existing standard for encrypted messages: NIP-59 Gift Wrap, which uses NIP-44
+        encryption. It's designed for private DMs and has been audited by Cure53. So why doesn't
+        Pinstr use it?
+      </p>
+
+      <p>
+        Gift Wrap uses a three-layer structure:
+      </p>
+
+      <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed whitespace-pre text-foreground">
+{`┌─────────────────────────────────────────────────────────┐
+│ Gift Wrap (kind 1059)                                   │
+│ - Signed by: ephemeral one-time key                     │
+│ - p-tag: recipient's pubkey                             │
+│ - content: NIP-44 encrypted seal                        │
+│                                                         │
+│   ┌─────────────────────────────────────────────────┐   │
+│   │ Seal (kind 13)                                  │   │
+│   │ - Signed by: real author                        │   │
+│   │ - content: NIP-44 encrypted rumor               │   │
+│   │                                                 │   │
+│   │   ┌─────────────────────────────────────────┐   │   │
+│   │   │ Rumor (kind 39701 - UNSIGNED)           │   │   │
+│   │   │ - The actual bookmark event             │   │   │
+│   │   │ - d-tag, title, content, etc.           │   │   │
+│   │   └─────────────────────────────────────────┘   │   │
+│   └─────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘`}
+      </pre>
+
+      <p>
+        There are several reasons Gift Wrap isn't ideal for private bookmarks:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Author leakage:</strong> The seal (kind 13) is signed by the real author's key.
+          Even though the content is encrypted, the seal's pubkey reveals who created it. Our vault
+          approach uses a derived keypair that's completely unlinkable.
+        </li>
+        <li>
+          <strong>Query complexity:</strong> With Gift Wrap, you query for kind 1059 events tagged
+          with your pubkey, then unwrap each one to check if it's a bookmark. With our approach,
+          you just query for kind 39702 events by your vault pubkey — direct and simple.
+        </li>
+        <li>
+          <strong>Relay storage:</strong> NIP-59 notes that relays may choose not to store gift
+          wrapped events. They see kind 1059 as an "encrypted blob" with no semantic meaning. A
+          dedicated kind for private bookmarks can be handled better.
+        </li>
+        <li>
+          <strong>Passphrase-based recovery:</strong> Our vault derives keys from passphrase +
+          pubkey. You can recover on any device with just the passphrase. Gift Wrap requires access
+          to your private key (nsec).
+        </li>
+      </ul>
+
+      <h3>Quantum Resistance</h3>
+      <p>
+        Here's an interesting property of our approach: it's more quantum-resistant than NIP-44.
+      </p>
+      <p>
+        NIP-44 uses ECDH (Elliptic Curve Diffie-Hellman) for key exchange, which relies on
+        secp256k1. This is vulnerable to Shor's algorithm on a quantum computer.
+      </p>
+      <p>
+        Our vault derives keys using Argon2id from a passphrase — a purely symmetric operation.
+        The encryption uses AES-256-GCM, also symmetric. Neither of these are vulnerable to known
+        quantum attacks.
+      </p>
+      <p>
+        Of course, both approaches still use secp256k1 for Nostr event signing, which is the weak
+        point for both. But for the encryption of your private data, our passphrase-based approach
+        avoids the elliptic curve vulnerability entirely.
+      </p>
+
+      <h3>Summary</h3>
+      <p>
+        Pinstr's vault gives you private bookmarks that are:
+      </p>
+      <ul>
+        <li><strong>Encrypted</strong> — AES-256-GCM, a battle-tested NIST standard</li>
+        <li><strong>Unlinkable</strong> — signed by a separate vault keypair with no connection to your public identity</li>
+        <li><strong>Recoverable</strong> — derived deterministically from your passphrase, so you can access them on any device</li>
+        <li><strong>Quantum-resistant</strong> — no elliptic curve cryptography in the key derivation or encryption</li>
+      </ul>
+      <p>
+        Your private bookmarks are truly private. Not even we can read them — because we never see
+        your passphrase.
+      </p>
+    </>
+  ),
+
   'welcome-to-pinstr': (
     <>
       <p>

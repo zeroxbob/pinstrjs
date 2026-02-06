@@ -11,8 +11,14 @@ export interface BlogPost {
   excerpt: string;
 }
 
-// Add new blog posts here
+// Add new blog posts here (newest first)
 export const blogPosts: BlogPost[] = [
+  {
+    slug: 'how-pinstr-encrypts-private-bookmarks',
+    title: 'How Pinstr Encrypts Private Bookmarks',
+    date: '2026-02-06',
+    excerpt: 'A deep dive into how Pinstr solves the problem of private bookmarks on Nostr — encrypted, unlinkable to your identity, and quantum-resistant.',
+  },
   {
     slug: 'welcome-to-pinstr',
     title: 'Welcome to Pinstr',
@@ -39,9 +45,9 @@ export function BlogPage() {
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {blogPosts.map((post) => (
-            <Link key={post.slug} to={`/blog/${post.slug}`}>
+            <Link key={post.slug} to={`/blog/${post.slug}`} className="block">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardHeader>
                   <div className="flex items-center justify-between">
