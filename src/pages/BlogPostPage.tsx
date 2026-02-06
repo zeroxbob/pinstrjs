@@ -7,6 +7,233 @@ import { blogPosts } from './BlogPage';
 
 // Blog post content - add content for each slug here
 const blogContent: Record<string, React.ReactNode> = {
+  'getting-started-with-pinstr-android': (
+    <>
+      <p>
+        Pinstr also has a native Android client that stores your bookmarks on the Nostr network.
+        Your bookmarks live on relays you choose. This guide will walk you through setting up
+        and using the app.
+      </p>
+
+      <h3>Signing In</h3>
+      <p>
+        When you first open Pinstr, you'll need to connect your Nostr identity. There are three
+        ways to do this:
+      </p>
+
+      <h4>Option 1: Using Amber (Recommended)</h4>
+      <p>
+        <a href="https://github.com/greenart7c3/Amber" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">Amber</a> is
+        a dedicated Nostr signing app that keeps your private key secure. This is the recommended
+        approach because your nsec never leaves Amber.
+      </p>
+      <ol>
+        <li>Install Amber from the Play Store or GitHub</li>
+        <li>Set up your Nostr identity in Amber (or import an existing one)</li>
+        <li>In Pinstr, tap <strong>"Login with Amber"</strong></li>
+        <li>Amber will open and ask you to approve the connection</li>
+        <li>Once approved, you're signed in</li>
+      </ol>
+
+      <h4>Option 2: Paste Your nsec</h4>
+      <p>
+        If you prefer not to use Amber, you can paste your nsec directly:
+      </p>
+      <ol>
+        <li>Tap <strong>"Paste nsec"</strong></li>
+        <li>Enter your nsec (starts with <code>nsec1...</code>)</li>
+        <li>Tap <strong>"Sign In"</strong></li>
+      </ol>
+      <p>
+        Note: Your nsec is stored locally on your device. For maximum security, we recommend
+        using Amber instead.
+      </p>
+
+      <h4>Option 3: Using a Bunker</h4>
+      <p>
+        If you use a Nostr bunker (remote signing service), you can connect via bunker URL:
+      </p>
+      <ol>
+        <li>Tap <strong>"Login with Bunker"</strong></li>
+        <li>Enter your bunker connection string</li>
+        <li>Approve the connection request in your bunker app</li>
+      </ol>
+
+      <h3>Setting Up Your Vault</h3>
+      <p>
+        The vault is where Pinstr stores your private bookmarks. Private bookmarks are encrypted
+        so that only you can read them — not even the relay operators can see what you've saved.
+      </p>
+      <p>
+        After signing in, you'll be prompted to create your vault:
+      </p>
+      <ol>
+        <li>Choose a strong passphrase (the strength indicator will help you)</li>
+        <li>Confirm your passphrase</li>
+        <li>Tap <strong>"Create Vault"</strong></li>
+      </ol>
+      <p>
+        Your vault uses Argon2id for key derivation and AES-256-GCM for encryption. This is the
+        same level of security used by password managers.
+      </p>
+      <p>
+        <strong>Important:</strong> If you forget your vault passphrase, there's no way to recover
+        it. Your private bookmarks would be lost. Consider using a password manager to store your
+        vault passphrase.
+      </p>
+
+      <h4>Locking and Unlocking</h4>
+      <p>
+        Your vault stays unlocked during your session. You can lock it manually from the menu
+        (look for the lock icon next to your vault status). When locked, your private bookmarks
+        are hidden until you unlock again with your passphrase.
+      </p>
+
+      <h3>Configuring Relays</h3>
+      <p>
+        Relays are the servers that store and distribute your bookmarks on the Nostr network.
+        Pinstr comes with default relays, but you can customize them:
+      </p>
+      <ol>
+        <li>Open the menu (tap the hamburger icon or swipe from the left)</li>
+        <li>Tap <strong>"Relays"</strong></li>
+        <li>Here you can:
+          <ul>
+            <li>See your current relays and their connection status</li>
+            <li>Add new relays by entering their WebSocket URL (e.g., <code>wss://relay.damus.io</code>)</li>
+            <li>Remove relays you don't want to use</li>
+            <li>Toggle relays on/off</li>
+          </ul>
+        </li>
+      </ol>
+      <p>
+        <strong>Tip:</strong> Using multiple relays improves reliability. If one relay is down,
+        your bookmarks are still available from the others.
+      </p>
+
+      <h3>Adding Bookmarks</h3>
+      <p>
+        There are two ways to add bookmarks:
+      </p>
+
+      <h4>From the App</h4>
+      <ol>
+        <li>Tap the <strong>+</strong> button (floating action button at the bottom)</li>
+        <li>Enter the URL you want to save</li>
+        <li>Add a title and description (optional)</li>
+        <li>Add tags to organize your bookmarks (optional)</li>
+        <li>Toggle <strong>"Encrypted"</strong> if you want this to be a private bookmark (requires unlocked vault)</li>
+        <li>Tap the save button</li>
+      </ol>
+
+      <h4>From Any App (Share Sheet)</h4>
+      <p>
+        This is the fastest way to save bookmarks:
+      </p>
+      <ol>
+        <li>In any app (browser, Twitter, Reddit, etc.), tap <strong>Share</strong></li>
+        <li>Select <strong>Pinstr</strong> from the share options</li>
+        <li>Edit the details if needed</li>
+        <li>Save</li>
+      </ol>
+
+      <h3>Viewing Your Bookmarks</h3>
+      <p>
+        Your bookmarks are displayed in a list showing the title, URL, and tags. You can:
+      </p>
+      <ul>
+        <li><strong>Tap</strong> a bookmark to open it</li>
+        <li><strong>Long-press</strong> a bookmark to see quick actions</li>
+        <li>Use the <strong>search</strong> icon to find bookmarks by title, URL, or description</li>
+        <li>Use the <strong>filter</strong> icon to sort your bookmarks</li>
+      </ul>
+
+      <h4>Public vs Private Bookmarks</h4>
+      <ul>
+        <li><strong>Public bookmarks</strong> are visible to anyone who queries the relays</li>
+        <li><strong>Private bookmarks</strong> (encrypted) are only visible to you when your vault is unlocked</li>
+      </ul>
+      <p>
+        You can filter to show only public or only private bookmarks using the menu options.
+      </p>
+
+      <h3>Quick Actions</h3>
+      <p>
+        Long-press any bookmark to see quick actions:
+      </p>
+      <ul>
+        <li><strong>Edit</strong> — Modify the bookmark details</li>
+        <li><strong>Delete</strong> — Remove the bookmark</li>
+        <li><strong>Copy URL</strong> — Copy the link to your clipboard</li>
+        <li><strong>Share</strong> — Share the bookmark via other apps</li>
+        <li><strong>Open in browser</strong> — Open the link in your browser</li>
+        <li><strong>Show bookmark JSON</strong> — View the raw Nostr event data (useful for debugging or learning about the protocol)</li>
+      </ul>
+      <p>
+        You can customize which quick actions appear in <strong>Preferences → Bookmark quick actions</strong>.
+      </p>
+
+      <h3>Opening Bookmarks in Your Browser</h3>
+      <p>
+        By default, tapping a bookmark opens it in an in-app browser. If you prefer using your
+        favorite browser:
+      </p>
+      <ol>
+        <li>Open the menu</li>
+        <li>Tap <strong>"Preferences"</strong></li>
+        <li>Find <strong>"Preferred details view"</strong></li>
+        <li>Select <strong>"External browser"</strong></li>
+      </ol>
+      <p>
+        Now tapping a bookmark will open it directly in your default browser.
+      </p>
+
+      <h3>Syncing</h3>
+      <p>
+        Pinstr automatically syncs your bookmarks with your configured relays. You can also:
+      </p>
+      <ul>
+        <li><strong>Pull to refresh</strong> to manually sync</li>
+        <li>Configure <strong>periodic sync</strong> in Preferences (every 6, 12, or 24 hours)</li>
+      </ul>
+      <p>
+        Your bookmarks are also cached locally, so you can browse them offline.
+      </p>
+
+      <h3>Tips</h3>
+      <ul>
+        <li><strong>Tags are powerful</strong> — Use consistent tags to organize your bookmarks. You can tap any tag to filter by it.</li>
+        <li><strong>Descriptions help search</strong> — Adding descriptions makes bookmarks easier to find later.</li>
+        <li><strong>Private by default</strong> — If you want most bookmarks private, keep your vault unlocked while browsing.</li>
+        <li><strong>Multiple devices</strong> — Since bookmarks are stored on Nostr relays, you can access them from the <a href="https://pinstr.co" className="text-violet-600 hover:underline">Pinstr web app</a> too.</li>
+      </ul>
+
+      <h3>Troubleshooting</h3>
+      <p><strong>Bookmarks not syncing?</strong></p>
+      <ul>
+        <li>Check your relay connections in the Relays screen</li>
+        <li>Make sure you have an internet connection</li>
+        <li>Try pulling to refresh</li>
+      </ul>
+
+      <p><strong>Can't see private bookmarks?</strong></p>
+      <ul>
+        <li>Make sure your vault is unlocked (check the vault status in the menu)</li>
+      </ul>
+
+      <p><strong>Amber not working?</strong></p>
+      <ul>
+        <li>Ensure Amber is installed and set up with your identity</li>
+        <li>Try signing out and signing in again</li>
+      </ul>
+
+      <p>
+        Have questions or feedback? Visit <a href="https://pinstr.co" className="text-violet-600 hover:underline">pinstr.co</a> or
+        <a href="https://njump.me/npub1vppdwqmhlzhftstq5exturmry4u0pdfm93mqj4zfuuznhclxygfsdatk8w" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">find us on Nostr</a>.
+      </p>
+    </>
+  ),
+
   'getting-started-with-pinstr': (
     <>
       <p>
@@ -159,7 +386,7 @@ const blogContent: Record<string, React.ReactNode> = {
       <p>
         Ready to save your first bookmark? Head to{' '}
         <a href="https://pinstr.co" className="text-violet-600 hover:underline">pinstr.co</a>, sign
-        in, and give it a try. If you have questions or feedback, find us on Nostr or open an issue
+        in, and give it a try. If you have questions or feedback, <a href="https://njump.me/npub1vppdwqmhlzhftstq5exturmry4u0pdfm93mqj4zfuuznhclxygfsdatk8w" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">find us on Nostr</a> or open an issue
         on{' '}
         <a href="https://github.com/zeroxbob/pinstrjs" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">
           GitHub

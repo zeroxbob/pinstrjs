@@ -14,6 +14,12 @@ export interface BlogPost {
 // Add new blog posts here (newest first)
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'getting-started-with-pinstr-android',
+    title: 'Getting Started with Pinstr for Android',
+    date: '2026-02-06',
+    excerpt: 'A complete guide to using Pinstr on Android — signing in with Amber, setting up your vault, adding bookmarks, and syncing across devices.',
+  },
+  {
     slug: 'getting-started-with-pinstr',
     title: 'Getting Started with Pinstr',
     date: '2026-02-06',
