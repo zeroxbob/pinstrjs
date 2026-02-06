@@ -18,7 +18,7 @@ export function PrivacyPolicyPage() {
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Privacy Policy</h2>
           <p className="text-muted-foreground mt-1">
-            Last updated: February 2025
+            Last updated: February 2026
           </p>
         </div>
 
