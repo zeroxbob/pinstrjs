@@ -7,6 +7,167 @@ import { blogPosts } from './BlogPage';
 
 // Blog post content - add content for each slug here
 const blogContent: Record<string, React.ReactNode> = {
+  'getting-started-with-pinstr': (
+    <>
+      <p>
+        Pinstr is a bookmark manager that stores your bookmarks on the Nostr network. This guide
+        walks you through adding your first bookmark — whether from the web app, the Chrome
+        extension, or the bookmarklet.
+      </p>
+
+      <h3>What You Need</h3>
+      <p>
+        To use Pinstr, you need a Nostr identity. If you're new to Nostr, you'll need a browser
+        extension that manages your keys — like{' '}
+        <a href="https://getalby.com" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">Alby</a>,{' '}
+        <a href="https://github.com/nicnocquee/flamingo" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">Flamingo</a>, or{' '}
+        <a href="https://github.com/nicnocquee/nos2x" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">nos2x</a>.
+        These extensions store your private key securely and let websites like Pinstr request
+        signatures without ever seeing your key.
+      </p>
+
+      <h3>Adding a Bookmark from the Web App</h3>
+      <p>
+        The simplest way to add a bookmark:
+      </p>
+      <ol>
+        <li>Go to <a href="https://pinstr.co" className="text-violet-600 hover:underline">pinstr.co</a></li>
+        <li>Click <strong>Sign In</strong> and approve the connection in your Nostr extension</li>
+        <li>Click the <strong>Add Bookmark</strong> button in the header</li>
+        <li>Paste the URL you want to save</li>
+        <li>Add a title, description, and tags (all optional but helpful)</li>
+        <li>Choose whether to save it as public or private</li>
+        <li>Click <strong>Save</strong></li>
+      </ol>
+      <p>
+        That's it. Your bookmark is now saved to the Nostr network.
+      </p>
+
+      <h3>Adding a Bookmark with the Chrome Extension</h3>
+      <p>
+        The Chrome extension lets you save the current page with one click, without leaving the site
+        you're on.
+      </p>
+      <ol>
+        <li>
+          Install the extension from the{' '}
+          <a href="/extension" className="text-violet-600 hover:underline">extension page</a> (it's
+          not on the Chrome Web Store yet, so you'll load it in developer mode)
+        </li>
+        <li>Click the Pinstr icon in your browser toolbar</li>
+        <li>Sign in with your Nostr extension, nsec, or bunker</li>
+        <li>Navigate to any webpage you want to save</li>
+        <li>Click the Pinstr icon — the URL and title are pre-filled automatically</li>
+        <li>Add tags or a description if you like</li>
+        <li>Click <strong>Save Bookmark</strong></li>
+      </ol>
+      <p>
+        The extension captures the page's URL, title, and meta description automatically. You can
+        also select text on the page before clicking the extension — the selected text becomes the
+        description.
+      </p>
+
+      <h3>Adding a Bookmark with the Bookmarklet</h3>
+      <p>
+        Don't want to install an extension? The bookmarklet is a tiny piece of JavaScript you save
+        as a regular browser bookmark. It works in any browser.
+      </p>
+      <ol>
+        <li>
+          Go to the{' '}
+          <a href="/install-bookmarklet" className="text-violet-600 hover:underline">bookmarklet install page</a>
+        </li>
+        <li>Drag the "Save to Pinstr" button to your bookmarks bar</li>
+        <li>Navigate to any page you want to save</li>
+        <li>Click the bookmarklet in your bookmarks bar</li>
+        <li>A popup opens with the page details pre-filled</li>
+        <li>Sign in (if not already) and save</li>
+      </ol>
+      <p>
+        The bookmarklet opens a small Pinstr popup window. Once you save, the popup closes
+        automatically.
+      </p>
+
+      <h3>What Happens When You Save</h3>
+      <p>
+        When you save a public bookmark, Pinstr creates a Nostr event and publishes it to your
+        configured relays. The event looks something like this:
+      </p>
+      <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs font-mono leading-relaxed whitespace-pre text-foreground">
+{`{
+  "kind": 39701,
+  "pubkey": "your-public-key",
+  "content": "Your description here",
+  "tags": [
+    ["d", "example.com/page"],
+    ["title", "Page Title"],
+    ["t", "tag1"],
+    ["t", "tag2"]
+  ],
+  "created_at": 1738857600,
+  "sig": "..."
+}`}
+      </pre>
+      <p>
+        The event is signed by your Nostr key and stored on relays. Anyone can query for your
+        public bookmarks by your pubkey. Other Nostr clients that support NIP-B0 can display them
+        too — you're not locked into Pinstr.
+      </p>
+
+      <h3>Public vs Private Bookmarks</h3>
+      <p>
+        By default, bookmarks are <strong>public</strong>. They're visible to anyone on the Nostr
+        network, associated with your public identity, and can be shared or discovered by others.
+      </p>
+      <p>
+        If you want to save something privately — a link you don't want others to see or associate
+        with your identity — toggle the <strong>Private</strong> option when saving.
+      </p>
+      <p>
+        Private bookmarks work differently:
+      </p>
+      <ul>
+        <li>They're encrypted with AES-256-GCM before leaving your browser</li>
+        <li>They're signed by a separate "vault" keypair derived from a passphrase you choose</li>
+        <li>They can't be linked to your public Nostr identity</li>
+        <li>Only you can decrypt them — with the correct passphrase</li>
+      </ul>
+      <p>
+        The first time you save a private bookmark, Pinstr asks you to set a vault passphrase.
+        Choose something strong and memorable — if you forget it, your private bookmarks are
+        unrecoverable. That's the tradeoff for true privacy.
+      </p>
+      <p>
+        For a deep dive into how the encryption works, see{' '}
+        <a href="/blog/how-pinstr-encrypts-private-bookmarks" className="text-violet-600 hover:underline">
+          How Pinstr Encrypts Private Bookmarks
+        </a>.
+      </p>
+
+      <h3>Syncing Across Devices</h3>
+      <p>
+        Because your bookmarks live on Nostr relays (not on Pinstr's servers), they sync
+        automatically across all your devices. Open Pinstr on your phone, laptop, or any other
+        device, sign in with the same Nostr identity, and your bookmarks are there.
+      </p>
+      <p>
+        For private bookmarks, you'll need to enter your vault passphrase on each device to unlock
+        and decrypt them.
+      </p>
+
+      <h3>Get Started</h3>
+      <p>
+        Ready to save your first bookmark? Head to{' '}
+        <a href="https://pinstr.co" className="text-violet-600 hover:underline">pinstr.co</a>, sign
+        in, and give it a try. If you have questions or feedback, find us on Nostr or open an issue
+        on{' '}
+        <a href="https://github.com/zeroxbob/pinstrjs" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">
+          GitHub
+        </a>.
+      </p>
+    </>
+  ),
+
   'how-pinstr-encrypts-private-bookmarks': (
     <>
       <p>

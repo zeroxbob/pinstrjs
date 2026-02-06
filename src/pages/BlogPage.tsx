@@ -14,6 +14,12 @@ export interface BlogPost {
 // Add new blog posts here (newest first)
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'getting-started-with-pinstr',
+    title: 'Getting Started with Pinstr',
+    date: '2026-02-06',
+    excerpt: 'Learn how to save your first bookmark with Pinstr — from the web app, browser extension, or bookmarklet. Plus: public vs private bookmarks explained.',
+  },
+  {
     slug: 'how-pinstr-encrypts-private-bookmarks',
     title: 'How Pinstr Encrypts Private Bookmarks',
     date: '2026-02-06',
