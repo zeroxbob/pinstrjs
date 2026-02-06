@@ -97,6 +97,14 @@ const Index = () => {
                     <p className="text-sm text-muted-foreground">
                       Use Pinstr on your phone with the new Android app. Bookmark on the go.
                     </p>
+                    <a
+                      href="https://github.com/zeroxbob/pinstr-kotlin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-violet-600 hover:underline mt-2 inline-block"
+                    >
+                      Get it on GitHub &rarr;
+                    </a>
                   </div>
                 </div>
               </CardContent>
@@ -114,6 +122,12 @@ const Index = () => {
                     <p className="text-sm text-muted-foreground">
                       No subscriptions, no ads. Pinstr is free to use. Support development if you want to.
                     </p>
+                    <Link
+                      to="/zaps"
+                      className="text-sm text-violet-600 hover:underline mt-2 inline-block"
+                    >
+                      Support Pinstr &rarr;
+                    </Link>
                   </div>
                 </div>
               </CardContent>
