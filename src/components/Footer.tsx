@@ -60,7 +60,7 @@ export function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-foreground transition-colors"
                 >
-                  Creator (b0b)
+                  Connect on Nostr
                 </a>
               </li>
               <li>
