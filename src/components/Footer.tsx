@@ -29,6 +29,11 @@ export function Footer() {
                   Value4Value
                 </Link>
               </li>
+              <li>
+                <Link to="/blog" className="hover:text-foreground transition-colors">
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -18,6 +18,8 @@ import HowItWorksPage from "./pages/HowItWorksPage";
 import FAQPage from "./pages/FAQPage";
 import ZapsPage from "./pages/ZapsPage";
 import ExtensionPage from "./pages/ExtensionPage";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
 import NotFound from "./pages/NotFound";
 
 export function AppRouter() {
@@ -41,6 +43,8 @@ export function AppRouter() {
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/zaps" element={<ZapsPage />} />
         <Route path="/extension" element={<ExtensionPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
         <Route path="/:nip19" element={<NIP19Page />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
